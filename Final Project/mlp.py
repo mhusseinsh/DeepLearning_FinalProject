@@ -11,35 +11,45 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
+from sklearn import linear_model
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import cross_val_predict
 
 from keras.wrappers.scikit_learn import KerasRegressor
+from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.models import Sequential
 from keras.models import model_from_json
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
 from keras.utils import np_utils
+from keras import regularizers
+from keras.optimizers import SGD
+from keras.optimizers import Adam
 
 def load_data(source_dir='./final_project'):
-    
-    configs = []
-    learning_curves = []
-    
-    for fn in glob.glob(os.path.join(source_dir, "*.json")):
-        with open(fn, 'r') as fh:
-            tmp = json.load(fh)
-            configs.append(tmp['config'])
-            learning_curves.append(tmp['learning_curve'])
-    return(configs, learning_curves)
+	
+	configs = []
+	learning_curves = []
+	
+	for fn in glob.glob(os.path.join(source_dir, "*.json")):
+		with open(fn, 'r') as fh:
+			tmp = json.load(fh)
+			configs.append(tmp['config'])
+			learning_curves.append(tmp['learning_curve'])
+	return(configs, learning_curves)
 configs, learning_curves = load_data()
 
 def prepare_data(configs, learning_curves):
+
+	Y_original = np.asarray(learning_curves)
 
 	for row in learning_curves:
 		del row[0:-1]
 
 
 	Y = np.asarray(learning_curves)
+
 
 	X = np.zeros((265, 5))
 
@@ -49,11 +59,72 @@ def prepare_data(configs, learning_curves):
 		X[row,2] = config['log10_learning_rate'] 
 		X[row,3] = config['log2_n_units_3'] 
 		X[row,4] = config['log2_n_units_1'] 
-	return X, Y
+	return X, Y, Y_original
 
-X, y = prepare_data(configs, learning_curves)
+def preprocess_data(X):
+	scaler = StandardScaler()
+	X_scaled = scaler.fit_transform(X)
 
-def baseline():
+	return X_scaled
+
+X, y, y_original = prepare_data(configs, learning_curves)
+X_scaled = preprocess_data(X)
+
+def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
+
+	model = Sequential()
+	"""model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
+					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
+				#model.add(Dropout(0.2))
+				model.add(Dense(64, kernel_initializer = 'random_uniform', 
+					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
+				#model.add(Dropout(0.2))
+				model.add(Dense(1, kernel_initializer = 'random_uniform', kernel_regularizer=regularizers.l2(0.01)))"""
+
+	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
+		bias_initializer = 'zeros', activation = 'relu'))
+	#model.add(Dropout(0.2))
+	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+		bias_initializer = 'zeros', activation = 'relu'))
+	#model.add(Dropout(0.2))
+	model.add(Dense(1, kernel_initializer = 'random_uniform'))
+
+	decay = learning_rate / num_epochs
+
+	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
+	adam = Adam(lr=0.001, decay=decay)
+	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
+	print('start training')
+
+	def exponential_decay(epoch):
+			
+		return np.exp(-epoch/5000)
+
+	early_stopping = EarlyStopping(monitor='val_loss', patience=300)
+	#l_rate = LearningRateScheduler(exponential_decay)
+
+	callback_list =[early_stopping]
+
+	history = model.fit(X, y, epochs = num_epochs, batch_size = batch_size, validation_split = 0.1, shuffle = True, callbacks = callback_list)
+	print('training done')
+	if raw == True:
+		model_json = model.to_json()
+		with open("model_raw.json", "w") as json_file:
+			json_file.write(model_json)
+
+		model.save_weights("model_raw.h5")
+		print("raw model is saved")
+	else:
+		model_json = model.to_json()
+		with open("model_pre.json", "w") as json_file:
+			json_file.write(model_json)
+
+		model.save_weights("model_pre.h5")
+		print("preprocessed model is saved")
+	return history
+
+
+def baseline_mlp():
 	print("In the baseline...")
 	model = Sequential()
 	model.add(Dense(5, input_dim = 5, kernel_initializer = 'normal', activation = 'relu'))
@@ -61,6 +132,14 @@ def baseline():
 	model.add(Dense(1, kernel_initializer = 'normal'))
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	return model
+
+def baseline_linear(X, y):
+	bias = np.ones((X.shape[0],1))
+	X_new = np.c_[bias, X]
+	w = np.dot(np.linalg.inv(np.dot(X.T, X)), np.dot(X.t, y))
+	#w = np.linalg.inv(X_new.T.dot(X)).dot(X.T.dot(y))
+	y_hat = X_new.dot(w)
+	return y_hat
 
 def evaluate_raw_data(X, y, baseline):
 	seed = 7
@@ -94,6 +173,64 @@ def evaluate_preprocessed_data(X, y, baseline):
 	results = cross_val_score(estimator, X_new, y, cv = kfold)
 	print("Results (without pipeline): %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
+def test(raw):
+	if (raw):
+		json_file = open('model_raw.json', 'r')
+		model = json_file.read()
+		json_file.close()
+		ml = model_from_json(model)
+		ml.load_weights("model_raw.h5")
+		print("Raw Model Loaded")
+		y_error = []
+		for x_test, y_test in zip(X, y):
+			x_test = x_test.reshape(-1, 5)
+			y_pred = ml.predict(x_test)
+			y_diff = abs(y_pred - y_test)
+			y_error.append(y_diff)
+		y_mean_error = np.mean(y_error)
+		print("mean accuracy from raw data", y_mean_error)
+
+	else:
+		json_file = open('model_pre.json', 'r')
+		model = json_file.read()
+		json_file.close()
+		ml = model_from_json(model)
+		ml.load_weights("model_pre.h5")
+		print("Pre Model Loaded")
+		y_error = []
+		for x_test, y_test in zip(X_scaled, y):
+			x_test = x_test.reshape(-1, 5)
+			y_pred = ml.predict(x_test)
+			y_diff = abs(y_pred - y_test)
+			y_error.append(y_diff)
+		y_mean_error = np.mean(y_error)
+		print("mean accuracy from preprocessed data", y_mean_error)
+
+Training = True
+if (Training):
+	history = mlp(X, y, 5, 500, 0.1, raw = True)
+	history_scaled = mlp(X_scaled, y, 5, 500, 0.1, raw = False)
+	raw = False
+	test(raw)
+	raw = True
+	test(raw)
+else:
+	raw = False
+	test(raw)
+	raw = True
+	test(raw)
+
+lr = linear_model.LinearRegression()
+scores = cross_val_score(lr, X, y)
+print("baseline scores: ", np.mean(scores))
+
+y_pred = cross_val_predict(lr, X, y, cv=3)
+y_error = abs(y_pred - y)
+print("baseline scores predict: ", np.mean(y_error))
+
+	
+#print(history)
+exit()
 evaluate_raw_data(X, y, baseline)
 evaluate_preprocessed_data_pipeline(X, y, baseline)
 evaluate_preprocessed_data(X, y, baseline)
