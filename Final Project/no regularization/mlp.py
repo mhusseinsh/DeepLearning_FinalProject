@@ -28,7 +28,7 @@ from keras import regularizers
 from keras.optimizers import SGD
 from keras.optimizers import Adam
 
-def load_data(source_dir='./final_project'):
+def load_data(source_dir='./../final_project'):
 	
 	configs = []
 	learning_curves = []
@@ -84,16 +84,16 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
-	model.add(Dropout(0.2))
+	#model.add(Dropout(0.2))
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
-	model.add(Dropout(0.2))
+	#model.add(Dropout(0.2))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
-	decay = learning_rate / num_epochs
+	#decay = learning_rate / num_epochs
 
 	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
-	adam = Adam(lr=0.001, decay=decay)
+	adam = Adam(lr=0.001)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	print('start training')
 
@@ -101,7 +101,7 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 			
 		return np.exp(-epoch/5000)
 
-	early_stopping = EarlyStopping(monitor='val_loss', patience=200, mode='auto')
+	early_stopping = EarlyStopping(monitor='val_loss', patience=50, mode='auto')
 	#l_rate = LearningRateScheduler(exponential_decay)
 
 	callback_list =[early_stopping]
@@ -238,21 +238,21 @@ def evaluate(raw):
 
 Training = True
 if (Training):
-	history = mlp(X, y, 5, 2500, 0.1, raw = True)
+	history = mlp(X, y, 5, 1500, 0.1, raw = True)
 	fig1 = plt.figure()
 	plt.plot(history.history['loss'])
 	plt.plot(history.history['val_loss'])
-	plt.title('model loss')
+	plt.title('Model Loss (raw data)')
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
 	plt.legend(['train', 'test'], loc='upper left')
 	fig1.savefig('model_loss_raw.png')
 
-	history_scaled = mlp(X_scaled, y, 5, 2500, 0.1, raw = False)
+	history_scaled = mlp(X_scaled, y, 5, 1500, 0.1, raw = False)
 	fig2 = plt.figure()
 	plt.plot(history_scaled.history['loss'])
 	plt.plot(history_scaled.history['val_loss'])
-	plt.title('model loss')
+	plt.title('Model Loss (scaled data)')
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
 	plt.legend(['train', 'test'], loc='upper left')
@@ -283,28 +283,38 @@ print("using baseline to compare: ")
 y_error = abs(y_pred - y_net)
 print("baseline scores predict raw data: ", np.mean(y_error))
 
+# True vs Baseline
 fig, ax = plt.subplots()
 ax.scatter(y, y_pred, edgecolors=(0, 0, 0))
 ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
-ax.set_xlabel('Measured')
-ax.set_ylabel('Predicted')
+ax.set_xlabel('True Values')
+ax.set_ylabel('Baseline Values')
+ax.set_title('True vs Baseline (raw data)')
 #plt.show()
-plt.savefig('model_rawData.png')
+plt.savefig('model_rawData(baseline).png')
 
-x = range(len(y))
+#True vs Network
+fig, ax = plt.subplots()
+ax.scatter(y, y_net, edgecolors=(0, 0, 0))
+ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.set_xlabel('True Values')
+ax.set_ylabel('Network Values')
+ax.set_title('True vs Network (raw data)')
+#plt.show()
+plt.savefig('model_rawData(network).png')
 
 fig3 = plt.figure()
-plt.scatter(x, y)
-plt.scatter(x, y_pred)
-plt.scatter(x, y_net)
-plt.title('Metrics Comparison')
+plt.plot(sorted(y, reverse=True))
+plt.plot(sorted(y_pred, reverse=True))
+plt.plot(sorted(y_net, reverse=True))
+plt.title('Comparison (raw data)')
 plt.ylabel('y label')
 plt.xlabel('value')
 plt.legend(['y_true', 'y_baseline', 'y_network'], loc='upper left')
 fig3.savefig('metrics_comparison_raw.png')
 
 
-# SCAKED DATA EVALUATION
+# SCALED DATA EVALUATION
 # Create linear regression object
 lr = linear_model.LinearRegression()
 
@@ -320,20 +330,32 @@ print("using baseline to compare: ")
 y_error = abs(y_pred - y_net)
 print("baseline scores predict scaled data: ", np.mean(y_error))
 
+# True vs Baseline
 fig, ax = plt.subplots()
 ax.scatter(y, y_pred, edgecolors=(0, 0, 0))
 ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
-ax.set_xlabel('Measured')
-ax.set_ylabel('Predicted')
+ax.set_xlabel('True Values')
+ax.set_ylabel('Baseline Values')
+ax.set_title('True vs Baseline (scaled data)')
 #plt.show()
-plt.savefig('model_scaledData.png')
+plt.savefig('model_scaledData(baseline).png')
+
+#True vs Network
+fig, ax = plt.subplots()
+ax.scatter(y, y_net, edgecolors=(0, 0, 0))
+ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.set_xlabel('True Values')
+ax.set_ylabel('Network Values')
+ax.set_title('True vs Network (scaled data)')
+#plt.show()
+plt.savefig('model_scaledData(network).png')
 
 
 fig4 = plt.figure()
-plt.scatter(x, y)
-plt.scatter(x, y_pred)
-plt.scatter(x, y_net)
-plt.title('Metrics Comparison')
+plt.plot(sorted(y, reverse=True))
+plt.plot(sorted(y_pred, reverse=True))
+plt.plot(sorted(y_net, reverse=True))
+plt.title('Comparison (scaled data)')
 plt.ylabel('y label')
 plt.xlabel('value')
 plt.legend(['y_true', 'y_baseline', 'y_network'], loc='upper left')
