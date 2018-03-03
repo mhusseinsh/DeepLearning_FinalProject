@@ -242,7 +242,7 @@ def evaluate(X, raw):
 
 def plot():
 		# Loss (raw data)
-		fig1, ax = plt.subplots(3, 3)
+		fig1, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -260,7 +260,7 @@ def plot():
 		fig1.savefig('model_loss_raw.png')
 		
 		# Loss (scaled data)
-		fig2, ax = plt.subplots(3, 3)
+		fig2, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -288,7 +288,7 @@ def plot():
 		plt.savefig('model_rawData(baseline).png')
 
 		#True vs Network (raw data)
-		fig4, ax = plt.subplots(3, 3)
+		fig4, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -306,7 +306,7 @@ def plot():
 		fig4.savefig('model_rawData(network).png')
 
 		# True vs Baseline vs Network (raw)
-		fig5, ax = plt.subplots(3, 3)
+		fig5, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -326,7 +326,7 @@ def plot():
 		fig5.savefig('metrics_comparison_raw.png')
 
 		# True vs Baseline vs Network (scaled)
-		fig6, ax = plt.subplots(3, 3)
+		fig6, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -356,7 +356,7 @@ def plot():
 		plt.savefig('model_scaledData(baseline).png')
 
 		#True vs Network (scaled data)
-		fig8, ax = plt.subplots(3, 3)
+		fig8, ax = plt.subplots(2, 2)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -372,6 +372,42 @@ def plot():
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
 		fig8.savefig('model_scaledData(network).png')
+
+		# True vs Baseline vs Network (raw) - all
+		fig9, ax = plt.subplots()
+		ax.plot(y_sorted)
+		ax.plot(y_pred[0])
+		handles = ['true', 'baseline']
+		for cnt in range (len(y_net)):
+			ax.plot(y_net[cnt])
+			l2norm = np.linalg.norm(y_sorted - y_net[cnt])
+			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+		plt.legend(handles, loc='best', fancybox=True, framealpha=0.5)
+		ax.set_ylabel('y Value')
+		ax.set_xlabel('Samples')
+		plt.title('Comparison (raw data)', fontsize=20, fontweight="bold")
+		fig9.set_size_inches(18.5, 10.5, forward=True)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		fig9.savefig('metrics_comparison_raw_all.png')
+
+		# True vs Baseline vs Network (scaled) - all
+		fig10, ax = plt.subplots()
+		ax.plot(y_sorted)
+		ax.plot(y_pred_scaled[0])
+		handles = ['true', 'baseline']
+		for cnt in range (len(y_net_scaled)):
+			ax.plot(y_net_scaled[cnt])
+			l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
+			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+		plt.legend(handles, loc='best', fancybox=True, framealpha=0.5)
+		ax.set_ylabel('y Value')
+		ax.set_xlabel('Samples')
+		plt.title('Comparison (scaled data)', fontsize=20, fontweight="bold")
+		fig10.set_size_inches(18.5, 10.5, forward=True)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		fig10.savefig('metrics_comparison_scaled_all.png')
 
 lrs = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
 batches = [5, 10, 15, 20, 25, 30]
@@ -389,81 +425,80 @@ best_batch = 0
 best_error = 100
 models = 9
 l2norm_all = []
-for model in range (models):
-	batch = np.random.choice(batches)
-	learningrate = np.random.choice(lrs)
-	batches_used.append(batch)
-	lr_used.append(learningrate)
-	if (Training):
-		print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
-		history.append(mlp(X, y, batch, 1500, learning_rate = learningrate, raw = True))
-		history_scaled.append(mlp(X_scaled, y, batch, 1500, learning_rate = learningrate, raw = False))
+for learningrate in (lrs):
+	for batch in (batches):
+		if (Training):
+			lr_used.append(learningrate)
+			batches_used.append(batch)
+			print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
+			history.append(mlp(X, y, batch, 2, learning_rate = learningrate, raw = True))
+			history_scaled.append(mlp(X_scaled, y, batch, 2, learning_rate = learningrate, raw = False))
 
-		raw = False
-		test(raw)
+			raw = False
+			test(raw)
+			raw = True
+			test(raw)
+		else:
+			raw = False
+			test(raw)
+			raw = True
+			test(raw)
+
+		#y = sorted(y, reverse=True)
+		y_sorted = []
+		for i in range (len(y)):
+			y_sorted.append(y[i][0])
+
+		indices = np.argsort(y_sorted)[::-1]
+
+		X_sorted = [X[i] for i in indices]
+		y_sorted = [y[i] for i in indices]
+		X_scaled_sorted = [X_scaled[i] for i in indices]
+
+		# RAW DATA EVALUATION
+		# Create linear regression object
+		lr = linear_model.LinearRegression()
+
+		# Predict using the fitted model (raw data)
+		pred = cross_val_predict(lr, X_sorted, y_sorted, cv=3)
+
+		# Predict using the network (raw data)
 		raw = True
-		test(raw)
-	else:
+		net = evaluate(X_sorted, raw)
+
+		print("using baseline to compare: ")
+		# The difference between the mlp and the baseline
+		y_error = abs(pred - net)
+		print("baseline scores predict raw data: ", np.mean(y_error))
+		
+		y_pred.append(pred)
+		y_net.append(np.array(net))
+		
+		# SCALED DATA EVALUATION
+		# Create linear regression object
+		lr = linear_model.LinearRegression()
+
+		# Predict using the fitted model (raw data)
+		pred = cross_val_predict(lr, X_scaled_sorted, y_sorted, cv=3)
+
+		# Predict using the network (raw data)
 		raw = False
-		test(raw)
-		raw = True
-		test(raw)
+		net = evaluate(X_scaled_sorted, raw)
 
-	#y = sorted(y, reverse=True)
-	y_sorted = []
-	for i in range (len(y)):
-		y_sorted.append(y[i][0])
+		print("using baseline to compare: ")
+		# The difference between the mlp and the baseline
+		y_error = abs(pred - net)
+		print("baseline scores predict scaled data: ", np.mean(y_error))
 
-	indices = np.argsort(y_sorted)[::-1]
+		l2norm_all.append(np.linalg.norm(y - net))
 
-	X_sorted = [X[i] for i in indices]
-	y_sorted = [y[i] for i in indices]
-	X_scaled_sorted = [X_scaled[i] for i in indices]
+		if (np.linalg.norm(y - net) < best_error):
+			best_error = np.linalg.norm(y - net)
+			best_batch = batch
+			best_lr = learningrate
 
-	# RAW DATA EVALUATION
-	# Create linear regression object
-	lr = linear_model.LinearRegression()
-
-	# Predict using the fitted model (raw data)
-	pred = cross_val_predict(lr, X_sorted, y_sorted, cv=3)
-
-	# Predict using the network (raw data)
-	raw = True
-	net = evaluate(X_sorted, raw)
-
-	print("using baseline to compare: ")
-	# The difference between the mlp and the baseline
-	y_error = abs(pred - net)
-	print("baseline scores predict raw data: ", np.mean(y_error))
-	
-	y_pred.append(pred)
-	y_net.append(np.array(net))
-	
-	# SCALED DATA EVALUATION
-	# Create linear regression object
-	lr = linear_model.LinearRegression()
-
-	# Predict using the fitted model (raw data)
-	pred = cross_val_predict(lr, X_scaled_sorted, y_sorted, cv=3)
-
-	# Predict using the network (raw data)
-	raw = False
-	net = evaluate(X_scaled_sorted, raw)
-
-	print("using baseline to compare: ")
-	# The difference between the mlp and the baseline
-	y_error = abs(pred - net)
-	print("baseline scores predict scaled data: ", np.mean(y_error))
-
-	l2norm_all.append(np.linalg.norm(y - net))
-
-	if (np.linalg.norm(y - net) < best_error):
-		best_error = np.linalg.norm(y - net)
-		best_batch = batch
-		best_lr = learningrate
-
-	y_pred_scaled.append(pred)
-	y_net_scaled.append(np.array(net))
+		y_pred_scaled.append(pred)
+		y_net_scaled.append(np.array(net))
 
 plot()
 
