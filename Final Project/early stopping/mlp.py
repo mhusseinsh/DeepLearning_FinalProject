@@ -29,10 +29,10 @@ from keras.optimizers import SGD
 from keras.optimizers import Adam
 
 def load_data(source_dir='./../final_project'):
-	
+
 	configs = []
 	learning_curves = []
-	
+
 	for fn in glob.glob(os.path.join(source_dir, "*.json")):
 		with open(fn, 'r') as fh:
 			tmp = json.load(fh)
@@ -55,11 +55,11 @@ def prepare_data(configs, learning_curves):
 	X = np.zeros((265, 5))
 
 	for row, config in enumerate(configs):
-		X[row,0] = config['batch_size'] 
-		X[row,1] = config['log2_n_units_2'] 
-		X[row,2] = config['log10_learning_rate'] 
-		X[row,3] = config['log2_n_units_3'] 
-		X[row,4] = config['log2_n_units_1'] 
+		X[row,0] = config['batch_size']
+		X[row,1] = config['log2_n_units_2']
+		X[row,2] = config['log10_learning_rate']
+		X[row,3] = config['log2_n_units_3']
+		X[row,4] = config['log2_n_units_1']
 	return X, Y, Y_original
 
 def preprocess_data(X):
@@ -74,18 +74,18 @@ X_scaled = preprocess_data(X)
 def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model = Sequential()
-	"""model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
+	"""model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform',
 					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
 				#model.add(Dropout(0.2))
-				model.add(Dense(64, kernel_initializer = 'random_uniform', 
+				model.add(Dense(64, kernel_initializer = 'random_uniform',
 					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
 				#model.add(Dropout(0.2))
 				model.add(Dense(1, kernel_initializer = 'random_uniform', kernel_regularizer=regularizers.l2(0.01)))"""
 
-	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
+	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform',
 		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(Dense(64, kernel_initializer = 'random_uniform',
 		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
@@ -98,10 +98,10 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 	print('start training')
 
 	def exponential_decay(epoch):
-			
+
 		return np.exp(-epoch/5000)
 
-	early_stopping = EarlyStopping(monitor='val_loss', patience=50, mode='auto')
+	early_stopping = EarlyStopping(monitor='val_loss', patience=200, mode='auto')
 	#l_rate = LearningRateScheduler(exponential_decay)
 
 	callback_list =[early_stopping]
@@ -158,7 +158,7 @@ def evaluate_preprocessed_data_pipeline(X, y, baseline):
 	estimator.append(('preprocess', StandardScaler()))
 	estimator.append(('mlp', KerasRegressor(build_fn = baseline, nb_epoch = 100, batch_size  = 5)))
 	pipeline = Pipeline(estimator)
-	
+
 	kfold = KFold(n_splits = 3, random_state = seed)
 	results = cross_val_score(pipeline, X, y, cv = kfold)
 	print("Results (pipeline with preprocessed data): %.2f (%.2f) MSE" % (results.mean(), results.std()))
