@@ -7,6 +7,9 @@ import tensorflow as tf
 import keras
 import numpy as np
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import cross_val_score
@@ -71,7 +74,7 @@ def preprocess_data(X):
 X, y, y_original = prepare_data(configs, learning_curves)
 X_scaled = preprocess_data(X)
 
-def mlp(X, y, batch_size, num_epochs, learning_rate, raw, learningrate):
+def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model = Sequential()
 	"""model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
@@ -93,7 +96,7 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw, learningrate):
 	#decay = learning_rate / num_epochs
 
 	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
-	adam = Adam(lr=learningrate)
+	adam = Adam(lr=learning_rate)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	
 	print('start training')
@@ -257,7 +260,7 @@ def plot():
 		fig1.savefig('model_loss_raw.png')
 		
 		# Loss (scaled data)
-		fig2, ax = plt.subplots(3, 2)
+		fig2, ax = plt.subplots(3, 3)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -285,7 +288,7 @@ def plot():
 		plt.savefig('model_rawData(baseline).png')
 
 		#True vs Network (raw data)
-		fig4, ax = plt.subplots(3, 2)
+		fig4, ax = plt.subplots(3, 3)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -303,7 +306,7 @@ def plot():
 		fig4.savefig('model_rawData(network).png')
 
 		# True vs Baseline vs Network (raw)
-		fig5, ax = plt.subplots(3, 2)
+		fig5, ax = plt.subplots(3, 3)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -323,7 +326,7 @@ def plot():
 		fig5.savefig('metrics_comparison_raw.png')
 
 		# True vs Baseline vs Network (scaled)
-		fig6, ax = plt.subplots(3, 2)
+		fig6, ax = plt.subplots(3, 3)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -353,7 +356,7 @@ def plot():
 		plt.savefig('model_scaledData(baseline).png')
 
 		#True vs Network (scaled data)
-		fig8, ax = plt.subplots(3, 2)
+		fig8, ax = plt.subplots(3, 3)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -370,8 +373,8 @@ def plot():
 		plt.subplots_adjust(top=0.85)
 		fig8.savefig('model_scaledData(network).png')
 
-lrs = [0.1, 0.01, 0.001, 0.005, 0.0001, 0.0005]
-batches = [5, 10, 15, 20, 25, 40]
+lrs = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
+batches = [5, 10, 15, 20, 25, 30]
 batches_used = []
 lr_used = []
 history = []
@@ -385,6 +388,7 @@ best_lr = 0
 best_batch = 0
 best_error = 100
 models = 9
+l2norm_all = []
 for model in range (models):
 	batch = np.random.choice(batches)
 	learningrate = np.random.choice(lrs)
@@ -392,8 +396,8 @@ for model in range (models):
 	lr_used.append(learningrate)
 	if (Training):
 		print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
-		history.append(mlp(X, y, batch, 1500, 0.1, raw = True, learningrate = learningrate))
-		history_scaled.append(mlp(X_scaled, y, batch, 1500, 0.1, raw = False, learningrate = learningrate))
+		history.append(mlp(X, y, batch, 1500, learning_rate = learningrate, raw = True))
+		history_scaled.append(mlp(X_scaled, y, batch, 1500, learning_rate = learningrate, raw = False))
 
 		raw = False
 		test(raw)
@@ -450,6 +454,8 @@ for model in range (models):
 	# The difference between the mlp and the baseline
 	y_error = abs(pred - net)
 	print("baseline scores predict scaled data: ", np.mean(y_error))
+
+	l2norm_all.append(np.linalg.norm(y - net))
 
 	if (np.linalg.norm(y - net) < best_error):
 		best_error = np.linalg.norm(y - net)
