@@ -84,10 +84,10 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
-	#model.add(Dropout(0.2))
+	#model.add(Dropout(0.1))
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
-	#model.add(Dropout(0.2))
+	#model.add(Dropout(0.1))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
 	#decay = learning_rate / num_epochs
@@ -207,7 +207,7 @@ def test(raw):
 		y_mean_error = np.mean(y_error)
 		print("mean accuracy from preprocessed data", y_mean_error)
 
-def evaluate(raw):
+def evaluate(X, raw):
 	if (raw):
 		json_file = open('model_raw.json', 'r')
 		model = json_file.read()
@@ -267,16 +267,27 @@ else:
 	raw = True
 	test(raw)
 
+#y = sorted(y, reverse=True)
+y_sorted = []
+for i in range (len(y)):
+	y_sorted.append(y[i][0])
+
+indices = np.argsort(y_sorted)[::-1]
+
+X_sorted = [X[i] for i in indices]
+y_sorted = [y[i] for i in indices]
+X_scaled_sorted = [X_scaled[i] for i in indices]
+
 # RAW DATA EVALUATION
 # Create linear regression object
 lr = linear_model.LinearRegression()
 
 # Predict using the fitted model (raw data)
-y_pred = cross_val_predict(lr, X, y, cv=3)
+y_pred = cross_val_predict(lr, X_sorted, y_sorted, cv=3)
 
 # Predict using the network (raw data)
 raw = True
-y_net = evaluate(raw)
+y_net = evaluate(X_sorted, raw)
 
 print("using baseline to compare: ")
 # The difference between the mlp and the baseline
@@ -285,8 +296,8 @@ print("baseline scores predict raw data: ", np.mean(y_error))
 
 # True vs Baseline
 fig, ax = plt.subplots()
-ax.scatter(y, y_pred, edgecolors=(0, 0, 0))
-ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.scatter(y_sorted, y_pred, edgecolors=(0, 0, 0))
+ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Baseline Values')
 ax.set_title('True vs Baseline (raw data)')
@@ -295,8 +306,8 @@ plt.savefig('model_rawData(baseline).png')
 
 #True vs Network
 fig, ax = plt.subplots()
-ax.scatter(y, y_net, edgecolors=(0, 0, 0))
-ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.scatter(y_sorted, y_net, edgecolors=(0, 0, 0))
+ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Network Values')
 ax.set_title('True vs Network (raw data)')
@@ -304,9 +315,9 @@ ax.set_title('True vs Network (raw data)')
 plt.savefig('model_rawData(network).png')
 
 fig3 = plt.figure()
-plt.plot(sorted(y, reverse=True))
-plt.plot(sorted(y_pred, reverse=True))
-plt.plot(sorted(y_net, reverse=True))
+plt.plot(y_sorted)
+plt.plot(y_pred)
+plt.plot(y_net)
 plt.title('Comparison (raw data)')
 plt.ylabel('y Value')
 plt.xlabel('Samples')
@@ -319,11 +330,11 @@ fig3.savefig('metrics_comparison_raw.png')
 lr = linear_model.LinearRegression()
 
 # Predict using the fitted model (raw data)
-y_pred = cross_val_predict(lr, X_scaled, y, cv=3)
+y_pred = cross_val_predict(lr, X_scaled_sorted, y_sorted, cv=3)
 
 # Predict using the network (raw data)
 raw = False
-y_net = evaluate(raw)
+y_net = evaluate(X_scaled_sorted, raw)
 
 print("using baseline to compare: ")
 # The difference between the mlp and the baseline
@@ -332,8 +343,8 @@ print("baseline scores predict scaled data: ", np.mean(y_error))
 
 # True vs Baseline
 fig, ax = plt.subplots()
-ax.scatter(y, y_pred, edgecolors=(0, 0, 0))
-ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.scatter(y_sorted, y_pred, edgecolors=(0, 0, 0))
+ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Baseline Values')
 ax.set_title('True vs Baseline (scaled data)')
@@ -342,8 +353,8 @@ plt.savefig('model_scaledData(baseline).png')
 
 #True vs Network
 fig, ax = plt.subplots()
-ax.scatter(y, y_net, edgecolors=(0, 0, 0))
-ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.scatter(y_sorted, y_net, edgecolors=(0, 0, 0))
+ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Network Values')
 ax.set_title('True vs Network (scaled data)')
@@ -352,9 +363,9 @@ plt.savefig('model_scaledData(network).png')
 
 
 fig4 = plt.figure()
-plt.plot(sorted(y, reverse=True))
-plt.plot(sorted(y_pred, reverse=True))
-plt.plot(sorted(y_net, reverse=True))
+plt.plot(y_sorted)
+plt.plot(y_pred)
+plt.plot(y_net)
 plt.title('Comparison (scaled data)')
 plt.ylabel('y Value')
 plt.xlabel('Samples')
