@@ -93,13 +93,13 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 	#decay = learning_rate / num_epochs
 
 	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
-	adam = Adam(lr=0.001)
+	adam = Adam(lr=1e-5)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	print('start training')
 
 	def exp_decay(epoch):
-	   initial_lrate = 0.01
-	   k = 0.01
+	   initial_lrate = 1e-5
+	   k = 1e-5
 	   lrate = initial_lrate * np.exp(-k*epoch)
 	   return lrate
 
@@ -136,7 +136,7 @@ def baseline_mlp():
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	return model
 
-def baseline_linear(X, y):
+"""def baseline_linear(X, y):
 	bias = np.ones((X.shape[0],1))
 	X_new = np.c_[bias, X]
 	w = np.dot(np.linalg.inv(np.dot(X.T, X)), np.dot(X.t, y))
@@ -174,7 +174,7 @@ def evaluate_preprocessed_data(X, y, baseline):
 	estimator = KerasRegressor(build_fn = baseline, nb_epoch = 100, batch_size  = 5)
 	kfold = KFold(n_splits = 3, random_state = seed)
 	results = cross_val_score(estimator, X_new, y, cv = kfold)
-	print("Results (without pipeline): %.2f (%.2f) MSE" % (results.mean(), results.std()))
+	print("Results (without pipeline): %.2f (%.2f) MSE" % (results.mean(), results.std()))"""
 
 def test(raw):
 	if (raw):
@@ -239,25 +239,27 @@ def evaluate(X, raw):
 		return y_net
 
 Training = True
+batch = 64
+epochs = 1500
 if (Training):
-	history = mlp(X, y, 5, 1500, 0.1, raw = True)
+	history = mlp(X, y, batch, epochs, 0.1, raw = True)
 	fig1 = plt.figure()
 	plt.plot(history.history['loss'])
 	plt.plot(history.history['val_loss'])
-	plt.title('Model Loss (raw data)')
+	plt.title('Model Loss (raw data)', fontsize=20, fontweight="bold")
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
-	plt.legend(['train', 'test'], loc='upper left')
+	plt.legend(['train', 'test'], loc='best', fancybox=True, framealpha=0.5)
 	fig1.savefig('model_loss_raw.png')
 
-	history_scaled = mlp(X_scaled, y, 5, 1500, 0.1, raw = False)
+	history_scaled = mlp(X_scaled, y, batch, epochs, 0.1, raw = False)
 	fig2 = plt.figure()
 	plt.plot(history_scaled.history['loss'])
 	plt.plot(history_scaled.history['val_loss'])
-	plt.title('Model Loss (scaled data)')
+	plt.title('Model Loss (scaled data)', fontsize=20, fontweight="bold")
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
-	plt.legend(['train', 'test'], loc='upper left')
+	plt.legend(['train', 'test'], loc='best', fancybox=True, framealpha=0.5)
 	fig2.savefig('model_loss_scaled.png')
 	raw = False
 	test(raw)
@@ -302,7 +304,7 @@ ax.scatter(y_sorted, y_pred, edgecolors=(0, 0, 0))
 ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Baseline Values')
-ax.set_title('True vs Baseline (raw data)')
+ax.set_title('True vs Baseline (raw data)', fontsize=20, fontweight="bold")
 #plt.show()
 plt.savefig('model_rawData(baseline).png')
 
@@ -312,7 +314,7 @@ ax.scatter(y_sorted, y_net, edgecolors=(0, 0, 0))
 ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Network Values')
-ax.set_title('True vs Network (raw data)')
+ax.set_title('True vs Network (raw data)', fontsize=20, fontweight="bold")
 #plt.show()
 plt.savefig('model_rawData(network).png')
 
@@ -320,10 +322,11 @@ fig3 = plt.figure()
 plt.plot(y_sorted)
 plt.plot(y_pred)
 plt.plot(y_net)
-plt.title('Comparison (raw data)')
+plt.title('Comparison (raw data)', fontsize=20, fontweight="bold")
 plt.ylabel('y Value')
 plt.xlabel('Samples')
-plt.legend(['y_true', 'y_baseline', 'y_network'], loc='upper left')
+l2norm = np.linalg.norm(y_sorted - np.array(y_net))
+plt.legend(['y_true', 'y_baseline', 'y_network ,' + ' ,L2 Norm =' + str(l2norm)], loc='best', fancybox=True, framealpha=0.5)
 fig3.savefig('metrics_comparison_raw.png')
 
 
@@ -349,7 +352,7 @@ ax.scatter(y_sorted, y_pred, edgecolors=(0, 0, 0))
 ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Baseline Values')
-ax.set_title('True vs Baseline (scaled data)')
+ax.set_title('True vs Baseline (scaled data)', fontsize=20, fontweight="bold")
 #plt.show()
 plt.savefig('model_scaledData(baseline).png')
 
@@ -359,7 +362,7 @@ ax.scatter(y_sorted, y_net, edgecolors=(0, 0, 0))
 ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 ax.set_xlabel('True Values')
 ax.set_ylabel('Network Values')
-ax.set_title('True vs Network (scaled data)')
+ax.set_title('True vs Network (scaled data)', fontsize=20, fontweight="bold")
 #plt.show()
 plt.savefig('model_scaledData(network).png')
 
@@ -368,13 +371,14 @@ fig4 = plt.figure()
 plt.plot(y_sorted)
 plt.plot(y_pred)
 plt.plot(y_net)
-plt.title('Comparison (scaled data)')
+plt.title('Comparison (scaled data)', fontsize=20, fontweight="bold")
 plt.ylabel('y Value')
 plt.xlabel('Samples')
-plt.legend(['y_true', 'y_baseline', 'y_network'], loc='upper left')
+l2norm = np.linalg.norm(y_sorted - np.array(y_net))
+plt.legend(['y_true', 'y_baseline', 'y_network ,' + ' ,L2 Norm =' + str(l2norm)], loc='best', fancybox=True, framealpha=0.5)
 fig4.savefig('metrics_comparison_scaled.png')
 #print(history)
 exit()
-evaluate_raw_data(X, y, baseline)
+"""evaluate_raw_data(X, y, baseline)
 evaluate_preprocessed_data_pipeline(X, y, baseline)
-evaluate_preprocessed_data(X, y, baseline)
+evaluate_preprocessed_data(X, y, baseline)"""

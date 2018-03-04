@@ -95,7 +95,7 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw, alpha):
 	#decay = learning_rate / num_epochs
 
 	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
-	adam = Adam(lr=0.001)
+	adam = Adam(lr=1e-5)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 	print('start training')
 
@@ -379,10 +379,12 @@ y_pred = []
 y_pred_scaled = []
 y_net = []
 y_net_scaled = []
+batch = 64
+epochs = 1500
 for alpha in (alphas):
 	if (Training):
-		history.append(mlp(X, y, 5, 1500, 0.1, raw = True, alpha = alpha))
-		history_scaled.append(mlp(X_scaled, y, 5, 1500, 0.1, raw = False, alpha = alpha))
+		history.append(mlp(X, y, batch, epochs, 0.1, raw = True, alpha = alpha))
+		history_scaled.append(mlp(X_scaled, y, batch, epochs, 0.1, raw = False, alpha = alpha))
 
 		raw = False
 		test(raw)
