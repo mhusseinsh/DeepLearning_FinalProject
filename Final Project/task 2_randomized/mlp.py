@@ -2,6 +2,9 @@ import os
 import sys
 import glob
 import json
+import itertools
+import math
+import random as ra
 
 import tensorflow as tf
 import keras
@@ -20,6 +23,7 @@ from sklearn import linear_model
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
 
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import LearningRateScheduler, EarlyStopping
@@ -65,7 +69,6 @@ def prepare_data(configs, learning_curves):
 	Y_10 = np.asarray(learning_curves_10)
 	Y_20 = np.asarray(learning_curves_20)
 
-
 	X = np.zeros((265, 5))
 
 	for row, config in enumerate(configs):
@@ -76,6 +79,14 @@ def prepare_data(configs, learning_curves):
 		X[row,4] = config['log2_n_units_1'] 
 	return X, Y, Y_5, Y_10, Y_20, Y_original
 
+def y_select(time_steps):
+	y_selected = y_original.tolist()
+	for row in y_selected:
+		del row[time_steps:]
+
+	y_selected = np.asarray(y_selected)
+	return y_selected
+
 def preprocess_data(X):
 	scaler = StandardScaler()
 	X_scaled = scaler.fit_transform(X)
@@ -83,14 +94,24 @@ def preprocess_data(X):
 	return X_scaled
 
 X, y, y_5, y_10, y_20, y_original = prepare_data(configs, learning_curves)
-
 X_scaled = preprocess_data(X)
 
-def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
+def x_copy(X, time_steps):
+	x_copied = np.zeros((X.shape[0]*time_steps,X.shape[1])).reshape(X.shape[0],time_steps,X.shape[1])
+	"""for x,x_c in zip(X, x_copied):
+						x_c = np.tile(x, (5,1))	"""
+	for x in range(X.shape[0]):
+		for t in range(time_steps):
+			x_copied[x][t] = X[x]
+
+	return x_copied
+
+def mlp(X, y, batch_size, num_epochs, time_steps, learning_rate, raw):
 
 	model = Sequential()
-
-	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
+	model.add(LSTM(time_steps, return_sequences = True, input_shape=(time_steps, 5)))
+	model.add(LSTM(time_steps))
+	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
@@ -98,7 +119,7 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 	#model.add(Dropout(0.2))
 	#model.add(LSTM(100))
 	#model.add(LSTM(100))
-	model.add(Dense(1, kernel_initializer = 'random_uniform'))
+	model.add(Dense(time_steps, kernel_initializer = 'random_uniform'))
 
 	#decay = learning_rate / num_epochs
 
@@ -108,14 +129,14 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 	
 	print('start training')
 
-	def exponential_decay(epoch):
+	"""def exponential_decay(epoch):
+						
+					return np.exp(-epoch/5000)
 			
-		return np.exp(-epoch/5000)
-
-	early_stopping = EarlyStopping(monitor='val_loss', patience=50, mode='auto')
-	#l_rate = LearningRateScheduler(exponential_decay)
-
-	callback_list =[early_stopping]
+				early_stopping = EarlyStopping(monitor='val_loss', patience=50, mode='auto')
+				#l_rate = LearningRateScheduler(exponential_decay)
+			
+				callback_list =[early_stopping]"""
 
 	history = model.fit(X, y, epochs = num_epochs, batch_size = batch_size, validation_split = 0.1, shuffle = True)#, callbacks = callback_list)
 	print('training done')
@@ -135,7 +156,7 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 		print("preprocessed model is saved")
 	return history
 
-def test(raw):
+def test(X, raw):
 	if (raw):
 		json_file = open('model_raw.json', 'r')
 		model = json_file.read()
@@ -145,9 +166,9 @@ def test(raw):
 		print("Raw Model Loaded")
 		y_error = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5)
+			x_test = x_test.reshape(-1, 5, 5)
 			y_pred = ml.predict(x_test)
-			y_diff = abs(y_pred - y_test)
+			y_diff = abs(y_pred[-1] - y_test)
 			y_error.append(y_diff)
 		y_mean_error = np.mean(y_error)
 		print("mean accuracy from raw data", y_mean_error)
@@ -160,15 +181,16 @@ def test(raw):
 		ml.load_weights("model_pre.h5")
 		print("Pre Model Loaded")
 		y_error = []
-		for x_test, y_test in zip(X_scaled, y):
-			x_test = x_test.reshape(-1, 5)
+		for x_test, y_test in zip(X, y):
+			x_test = x_test.reshape(-1, 5, 5)
 			y_pred = ml.predict(x_test)
-			y_diff = abs(y_pred - y_test)
+			y_diff = abs(y_pred[-1] - y_test)
 			y_error.append(y_diff)
 		y_mean_error = np.mean(y_error)
 		print("mean accuracy from preprocessed data", y_mean_error)
 
 def evaluate(X, raw):
+	X = x_copy(np.array(X), time_steps)
 	if (raw):
 		json_file = open('model_raw.json', 'r')
 		model = json_file.read()
@@ -178,9 +200,9 @@ def evaluate(X, raw):
 		print("Raw Model Loaded")
 		y_net = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5)
+			x_test = x_test.reshape(-1, 5, 5)
 			y_pred = ml.predict(x_test)
-			y_net.append(y_pred[0])
+			y_net.append(y_pred[0][-1])
 		return y_net
 
 	else:
@@ -192,14 +214,15 @@ def evaluate(X, raw):
 		print("Pre Model Loaded")
 		y_net = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5)
+			x_test = x_test.reshape(-1, 5, 5)
 			y_pred = ml.predict(x_test)
-			y_net.append(y_pred[0])
+			y_net.append(y_pred[0][-1])
 		return y_net
 
-def plot():
+def plot(dimension):
 		# Loss (raw data)
-		fig1, ax = plt.subplots(4, 4)
+		dimension = int(math.sqrt(dimension))
+		fig1, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -217,7 +240,7 @@ def plot():
 		fig1.savefig('model_loss_raw.png')
 		
 		# Loss (scaled data)
-		fig2, ax = plt.subplots(4, 4)
+		fig2, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -245,14 +268,13 @@ def plot():
 		plt.savefig('model_rawData(baseline).png')
 
 		#True vs Network (raw data)
-		fig4, ax = plt.subplots(4, 4)
+		fig4, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.scatter(y_sorted, y_net[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
-				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -263,15 +285,14 @@ def plot():
 		fig4.savefig('model_rawData(network).png')
 
 		# True vs Baseline vs Network (raw)
-		fig5, ax = plt.subplots(4, 4)
+		fig5, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.plot(y_sorted)
 				col.plot(y_pred[cnt])
 				col.plot(y_net[cnt])
-				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -283,15 +304,14 @@ def plot():
 		fig5.savefig('metrics_comparison_raw.png')
 
 		# True vs Baseline vs Network (scaled)
-		fig6, ax = plt.subplots(4, 4)
+		fig6, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.plot(y_sorted)
 				col.plot(y_pred_scaled[cnt])
 				col.plot(y_net_scaled[cnt])
-				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -313,14 +333,13 @@ def plot():
 		plt.savefig('model_scaledData(baseline).png')
 
 		#True vs Network (scaled data)
-		fig8, ax = plt.subplots(4, 4)
+		fig8, ax = plt.subplots(dimension, dimension)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.scatter(y_sorted, y_net_scaled[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
-				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -344,9 +363,14 @@ y_net_scaled = []
 best_lr = 0
 best_batch = 0
 best_error = 100
-models = 1
-l2norm_all = []
-epochs = 1
+models = 4
+mse_all = []
+epochs = 1000
+time_steps = int(ra.uniform(5,20))
+X_rnn = x_copy(X, time_steps)
+X_rnn_scaled = x_copy(X_scaled, time_steps)
+y_rnn = y_select(time_steps)
+
 for model in range (models):
 	batch = np.random.choice(batches)
 	learningrate = np.random.choice(lrs)
@@ -354,19 +378,19 @@ for model in range (models):
 	lr_used.append(learningrate)
 	if (Training):
 		print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
-		history.append(mlp(X, y, batch, epochs, learning_rate = learningrate, raw = True))
-		history_scaled.append(mlp(X_scaled, y, batch, epochs, learning_rate = learningrate, raw = False))
-
+		history.append(mlp(X_rnn, y_rnn, batch, epochs, time_steps, input_length, learning_rate = learningrate, raw = True))
+		history_scaled.append(mlp(X_rnn_scaled, y_rnn, batch, epochs, time_steps, input_length, learning_rate = learningrate, raw = False))
+		
 		raw = False
-		test(raw)
+		test(X_rnn_scaled, raw)
 		raw = True
-		test(raw)
+		test(X_rnn, raw)
 	else:
 		raw = False
-		test(raw)
+		test(X_rnn_scaled, raw)
 		raw = True
-		test(raw)
-
+		test(X_rnn, raw)
+	
 	#y = sorted(y, reverse=True)
 	y_sorted = []
 	for i in range (len(y)):
@@ -413,14 +437,14 @@ for model in range (models):
 	y_error = abs(pred - net)
 	print("baseline scores predict scaled data: ", np.mean(y_error))
 
-	l2norm_all.append(np.linalg.norm(y - net))
-
-	if (np.linalg.norm(y - net) < best_error):
-		best_error = np.linalg.norm(y - net)
+	mse_all.append(mean_squared_error(y, net))
+	
+	if (mean_squared_error(y, net) < best_error):
+		best_error = mean_squared_error(y, net)
 		best_batch = batch
 		best_lr = learningrate
 
 	y_pred_scaled.append(pred)
 	y_net_scaled.append(np.array(net))
 
-plot()
+plot(models)
