@@ -77,13 +77,6 @@ X_scaled = preprocess_data(X)
 def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model = Sequential()
-	"""model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
-					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
-				#model.add(Dropout(0.2))
-				model.add(Dense(64, kernel_initializer = 'random_uniform', 
-					bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=regularizers.l2(0.01)))
-				#model.add(Dropout(0.2))
-				model.add(Dense(1, kernel_initializer = 'random_uniform', kernel_regularizer=regularizers.l2(0.01)))"""
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
@@ -128,56 +121,6 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 		print("preprocessed model is saved")
 	return history
 
-
-"""def baseline_mlp():
-	print("In the baseline...")
-	model = Sequential()
-	model.add(Dense(5, input_dim = 5, kernel_initializer = 'normal', activation = 'relu'))
-	#model.add(Dense(20, kernel_initializer = 'normal', activation = 'relu'))
-	model.add(Dense(1, kernel_initializer = 'normal'))
-	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
-	return model
-
-def baseline_linear(X, y):
-	bias = np.ones((X.shape[0],1))
-	X_new = np.c_[bias, X]
-	w = np.dot(np.linalg.inv(np.dot(X.T, X)), np.dot(X.t, y))
-	#w = np.linalg.inv(X_new.T.dot(X)).dot(X.T.dot(y))
-	y_hat = X_new.dot(w)
-	return y_hat
-
-def evaluate_raw_data(X, y, baseline):
-	seed = 7
-	np.random.seed(seed)
-	estimator = KerasRegressor(build_fn = baseline, nb_epoch = 100, batch_size  = 5)
-
-	kfold = KFold(n_splits = 3, random_state = seed)
-	results = cross_val_score(estimator, X, y, cv = kfold)
-	print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
-
-def evaluate_preprocessed_data_pipeline(X, y, baseline):
-	seed = 7
-	np.random.seed(seed)
-	estimator = []
-	estimator.append(('preprocess', StandardScaler()))
-	estimator.append(('mlp', KerasRegressor(build_fn = baseline, nb_epoch = 100, batch_size  = 5)))
-	pipeline = Pipeline(estimator)
-	
-	kfold = KFold(n_splits = 3, random_state = seed)
-	results = cross_val_score(pipeline, X, y, cv = kfold)
-	print("Results (pipeline with preprocessed data): %.2f (%.2f) MSE" % (results.mean(), results.std()))
-
-def evaluate_preprocessed_data(X, y, baseline):
-	seed = 7
-	np.random.seed(seed)
-
-	standarize = StandardScaler()
-	X_new = standarize.fit_transform(X ,y)
-	estimator = KerasRegressor(build_fn = baseline, nb_epoch = 100, batch_size  = 5)
-	kfold = KFold(n_splits = 3, random_state = seed)
-	results = cross_val_score(estimator, X_new, y, cv = kfold)
-	print("Results (without pipeline): %.2f (%.2f) MSE" % (results.mean(), results.std()))
-"""
 def test(raw):
 	if (raw):
 		json_file = open('model_raw.json', 'r')
@@ -467,12 +410,3 @@ for model in range (models):
 	y_net_scaled.append(np.array(net))
 
 plot()
-
-
-
-
-#print(history)
-#exit()
-#evaluate_raw_data(X, y, baseline)
-#evaluate_preprocessed_data_pipeline(X, y, baseline)
-#evaluate_preprocessed_data(X, y, baseline)

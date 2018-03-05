@@ -6,8 +6,10 @@ import json
 import tensorflow as tf
 import keras
 import numpy as np
-import math
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import cross_val_score
@@ -23,12 +25,11 @@ from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.models import Sequential
 from keras.models import model_from_json
-from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten
+from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LSTM
 from keras.utils import np_utils
 from keras import regularizers
 from keras.optimizers import SGD
 from keras.optimizers import Adam
-from keras.regularizers import l1,l2
 
 def load_data(source_dir='./../final_project'):
 	
@@ -73,23 +74,24 @@ def preprocess_data(X):
 X, y, y_original = prepare_data(configs, learning_curves)
 X_scaled = preprocess_data(X)
 
-def mlp(X, y, batch_size, num_epochs, learning_rate, raw, alpha):
+def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 
 	model = Sequential()
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l1(alpha)))
+		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l1(alpha)))
+		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
 	#decay = learning_rate / num_epochs
 
 	#sgd = SGD(lr=0.1, decay=0.0, momentum=0.9)
-	adam = Adam(lr=1e-5)
+	adam = Adam(lr=learning_rate)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
+	
 	print('start training')
 
 	def exponential_decay(epoch):
@@ -183,13 +185,13 @@ def evaluate(X, raw):
 
 def plot():
 		# Loss (raw data)
-		fig1, ax = plt.subplots(3, 2)
+		fig1, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.plot(history[cnt].history['loss'])
 				col.plot(history[cnt].history['val_loss'])
-				col.set_title('alpha =' + str(alphas[cnt]))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]))
 				col.set_ylabel('loss')
 				col.set_xlabel('epoch')
 				cnt+=1
@@ -201,13 +203,13 @@ def plot():
 		fig1.savefig('model_loss_raw.png')
 		
 		# Loss (scaled data)
-		fig2, ax = plt.subplots(3, 2)
+		fig2, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.plot(history_scaled[cnt].history['loss'])
 				col.plot(history_scaled[cnt].history['val_loss'])
-				col.set_title('alpha =' + str(alphas[cnt]))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]))
 				col.set_ylabel('loss')
 				col.set_xlabel('epoch')
 				cnt+=1
@@ -229,14 +231,14 @@ def plot():
 		plt.savefig('model_rawData(baseline).png')
 
 		#True vs Network (raw data)
-		fig4, ax = plt.subplots(3, 2)
+		fig4, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.scatter(y_sorted, y_net[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('alpha =' + str(alphas[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -247,7 +249,7 @@ def plot():
 		fig4.savefig('model_rawData(network).png')
 
 		# True vs Baseline vs Network (raw)
-		fig5, ax = plt.subplots(3, 2)
+		fig5, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -255,7 +257,7 @@ def plot():
 				col.plot(y_pred[cnt])
 				col.plot(y_net[cnt])
 				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('alpha =' + str(alphas[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -267,7 +269,7 @@ def plot():
 		fig5.savefig('metrics_comparison_raw.png')
 
 		# True vs Baseline vs Network (scaled)
-		fig6, ax = plt.subplots(3, 2)
+		fig6, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
@@ -275,7 +277,7 @@ def plot():
 				col.plot(y_pred_scaled[cnt])
 				col.plot(y_net_scaled[cnt])
 				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('alpha =' + str(alphas[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -297,14 +299,14 @@ def plot():
 		plt.savefig('model_scaledData(baseline).png')
 
 		#True vs Network (scaled data)
-		fig8, ax = plt.subplots(3, 2)
+		fig8, ax = plt.subplots(4, 4)
 		cnt = 0
 		for row in ax:
 			for col in row:
 				col.scatter(y_sorted, y_net_scaled[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('alpha =' + str(alphas[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -314,7 +316,10 @@ def plot():
 		plt.subplots_adjust(top=0.85)
 		fig8.savefig('model_scaledData(network).png')
 
-alphas = [1e-15, 1e-10, 1e-8, 1e-6, 1e-3, 1e-2]
+lrs = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6]
+batches = [8, 16, 32, 64, 128, 256]
+batches_used = []
+lr_used = []
 history = []
 history_scaled = []
 Training = True
@@ -322,12 +327,21 @@ y_pred = []
 y_pred_scaled = []
 y_net = []
 y_net_scaled = []
-batch = 64
+best_lr = 0
+best_batch = 0
+best_error = 100
+models = 16
+l2norm_all = []
 epochs = 1500
-for alpha in (alphas):
+for model in range (models):
+	batch = np.random.choice(batches)
+	learningrate = np.random.choice(lrs)
+	batches_used.append(batch)
+	lr_used.append(learningrate)
 	if (Training):
-		history.append(mlp(X, y, batch, epochs, 0.1, raw = True, alpha = alpha))
-		history_scaled.append(mlp(X_scaled, y, batch, epochs, 0.1, raw = False, alpha = alpha))
+		print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
+		history.append(mlp(X, y, batch, epochs, learning_rate = learningrate, raw = True))
+		history_scaled.append(mlp(X_scaled, y, batch, epochs, learning_rate = learningrate, raw = False))
 
 		raw = False
 		test(raw)
@@ -339,7 +353,7 @@ for alpha in (alphas):
 		raw = True
 		test(raw)
 
-
+	#y = sorted(y, reverse=True)
 	y_sorted = []
 	for i in range (len(y)):
 		y_sorted.append(y[i][0])
@@ -384,6 +398,13 @@ for alpha in (alphas):
 	# The difference between the mlp and the baseline
 	y_error = abs(pred - net)
 	print("baseline scores predict scaled data: ", np.mean(y_error))
+
+	l2norm_all.append(np.linalg.norm(y - net))
+
+	if (np.linalg.norm(y - net) < best_error):
+		best_error = np.linalg.norm(y - net)
+		best_batch = batch
+		best_lr = learningrate
 
 	y_pred_scaled.append(pred)
 	y_net_scaled.append(np.array(net))
