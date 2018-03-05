@@ -20,6 +20,7 @@ from sklearn import linear_model
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import mean_squared_error
 
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import LearningRateScheduler, EarlyStopping
@@ -237,8 +238,7 @@ def plot():
 			for col in row:
 				col.scatter(y_sorted, y_net[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
-				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -256,8 +256,7 @@ def plot():
 				col.plot(y_sorted)
 				col.plot(y_pred[cnt])
 				col.plot(y_net[cnt])
-				l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -276,8 +275,7 @@ def plot():
 				col.plot(y_sorted)
 				col.plot(y_pred_scaled[cnt])
 				col.plot(y_net_scaled[cnt])
-				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all_scaled[cnt]))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
@@ -305,8 +303,7 @@ def plot():
 			for col in row:
 				col.scatter(y_sorted, y_net_scaled[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
-				l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all_scaled[cnt]))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
@@ -323,8 +320,7 @@ def plot():
 		handles = ['true', 'baseline']
 		for cnt in range (len(y_net)):
 			ax.plot(y_net[cnt])
-			l2norm = np.linalg.norm(y_sorted - y_net[cnt])
-			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
 		plt.legend(handles, loc='best', fancybox=True, framealpha=0.5)
 		ax.set_ylabel('y Value')
 		ax.set_xlabel('Samples')
@@ -341,8 +337,7 @@ def plot():
 		handles = ['true', 'baseline']
 		for cnt in range (len(y_net_scaled)):
 			ax.plot(y_net_scaled[cnt])
-			l2norm = np.linalg.norm(y_sorted - y_net_scaled[cnt])
-			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,L2 Norm =' + str(l2norm))
+			handles.append('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all_scaled[cnt]))
 		plt.legend(handles, loc='best', fancybox=True, framealpha=0.5)
 		ax.set_ylabel('y Value')
 		ax.set_xlabel('Samples')
@@ -367,7 +362,8 @@ best_lr = 0
 best_batch = 0
 best_error = 100
 models = 9
-l2norm_all = []
+mse_all = []
+mse_all_scaled = []
 epochs = 1500
 for learningrate in (lrs):
 	for batch in (batches):
@@ -415,6 +411,13 @@ for learningrate in (lrs):
 		y_error = abs(pred - net)
 		print("baseline scores predict raw data: ", np.mean(y_error))
 		
+		mse_all.append(mean_squared_error(y, net))
+	
+		if (mean_squared_error(y, net) < best_error):
+			best_error = mean_squared_error(y, net)
+			best_batch = batch
+			best_lr = learningrate
+
 		y_pred.append(pred)
 		y_net.append(np.array(net))
 		
@@ -434,10 +437,10 @@ for learningrate in (lrs):
 		y_error = abs(pred - net)
 		print("baseline scores predict scaled data: ", np.mean(y_error))
 
-		l2norm_all.append(np.linalg.norm(y - net))
-
-		if (np.linalg.norm(y - net) < best_error):
-			best_error = np.linalg.norm(y - net)
+		mse_all_scaled.append(mean_squared_error(y, net))
+	
+		if (mean_squared_error(y, net) < best_error):
+			best_error = mean_squared_error(y, net)
 			best_batch = batch
 			best_lr = learningrate
 
