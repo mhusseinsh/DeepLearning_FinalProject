@@ -48,11 +48,22 @@ def prepare_data(configs, learning_curves):
 
 	Y_original = np.asarray(learning_curves)
 
+	learning_curves_5 = Y_original.tolist()
+	learning_curves_10 = Y_original.tolist()
+	learning_curves_20 = Y_original.tolist()
+
 	for row in learning_curves:
 		del row[0:-1]
-
-
+	for row in learning_curves_5:
+		del row[5:]
+	for row in learning_curves_10:
+		del row[10:]
+	for row in learning_curves_20:
+		del row[20:]
 	Y = np.asarray(learning_curves)
+	Y_5 = np.asarray(learning_curves_5)
+	Y_10 = np.asarray(learning_curves_10)
+	Y_20 = np.asarray(learning_curves_20)
 
 
 	X = np.zeros((265, 5))
@@ -63,7 +74,7 @@ def prepare_data(configs, learning_curves):
 		X[row,2] = config['log10_learning_rate'] 
 		X[row,3] = config['log2_n_units_3'] 
 		X[row,4] = config['log2_n_units_1'] 
-	return X, Y, Y_original
+	return X, Y, Y_5, Y_10, Y_20, Y_original
 
 def preprocess_data(X):
 	scaler = StandardScaler()
@@ -71,7 +82,8 @@ def preprocess_data(X):
 
 	return X_scaled
 
-X, y, y_original = prepare_data(configs, learning_curves)
+X, y, y_5, y_10, y_20, y_original = prepare_data(configs, learning_curves)
+
 X_scaled = preprocess_data(X)
 
 def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
@@ -84,6 +96,8 @@ def mlp(X, y, batch_size, num_epochs, learning_rate, raw):
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu'))
 	#model.add(Dropout(0.2))
+	#model.add(LSTM(100))
+	#model.add(LSTM(100))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
 	#decay = learning_rate / num_epochs
@@ -330,9 +344,9 @@ y_net_scaled = []
 best_lr = 0
 best_batch = 0
 best_error = 100
-models = 16
+models = 1
 l2norm_all = []
-epochs = 1500
+epochs = 1
 for model in range (models):
 	batch = np.random.choice(batches)
 	learningrate = np.random.choice(lrs)
