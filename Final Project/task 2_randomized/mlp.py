@@ -52,22 +52,9 @@ def prepare_data(configs, learning_curves):
 
 	Y_original = np.asarray(learning_curves)
 
-	learning_curves_5 = Y_original.tolist()
-	learning_curves_10 = Y_original.tolist()
-	learning_curves_20 = Y_original.tolist()
-
 	for row in learning_curves:
 		del row[0:-1]
-	for row in learning_curves_5:
-		del row[5:]
-	for row in learning_curves_10:
-		del row[10:]
-	for row in learning_curves_20:
-		del row[20:]
 	Y = np.asarray(learning_curves)
-	Y_5 = np.asarray(learning_curves_5)
-	Y_10 = np.asarray(learning_curves_10)
-	Y_20 = np.asarray(learning_curves_20)
 
 	X = np.zeros((265, 5))
 
@@ -77,7 +64,7 @@ def prepare_data(configs, learning_curves):
 		X[row,2] = config['log10_learning_rate'] 
 		X[row,3] = config['log2_n_units_3'] 
 		X[row,4] = config['log2_n_units_1'] 
-	return X, Y, Y_5, Y_10, Y_20, Y_original
+	return X, Y, Y_original
 
 def y_select(time_steps):
 	y_selected = y_original.tolist()
@@ -93,7 +80,7 @@ def preprocess_data(X):
 
 	return X_scaled
 
-X, y, y_5, y_10, y_20, y_original = prepare_data(configs, learning_curves)
+X, y, y_original = prepare_data(configs, learning_curves)
 X_scaled = preprocess_data(X)
 
 def x_copy(X, time_steps):
@@ -166,7 +153,7 @@ def test(X, raw):
 		print("Raw Model Loaded")
 		y_error = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5, 5)
+			x_test = x_test.reshape(-1, time_steps, 5)
 			y_pred = ml.predict(x_test)
 			y_diff = abs(y_pred[-1] - y_test)
 			y_error.append(y_diff)
@@ -182,7 +169,7 @@ def test(X, raw):
 		print("Pre Model Loaded")
 		y_error = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5, 5)
+			x_test = x_test.reshape(-1, time_steps, 5)
 			y_pred = ml.predict(x_test)
 			y_diff = abs(y_pred[-1] - y_test)
 			y_error.append(y_diff)
@@ -200,7 +187,7 @@ def evaluate(X, raw):
 		print("Raw Model Loaded")
 		y_net = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5, 5)
+			x_test = x_test.reshape(-1, time_steps, 5)
 			y_pred = ml.predict(x_test)
 			y_net.append(y_pred[0][-1])
 		return y_net
@@ -214,7 +201,7 @@ def evaluate(X, raw):
 		print("Pre Model Loaded")
 		y_net = []
 		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, 5, 5)
+			x_test = x_test.reshape(-1, time_steps, 5)
 			y_pred = ml.predict(x_test)
 			y_net.append(y_pred[0][-1])
 		return y_net
@@ -233,7 +220,7 @@ def plot(dimension):
 				col.set_xlabel('epoch')
 				cnt+=1
 				col.legend(['train', 'test'], loc='best', fancybox=True, framealpha=0.5)
-		plt.suptitle('Model Loss (raw data)', fontsize=20, fontweight="bold")
+		plt.suptitle('Model Loss (raw data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig1.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -251,7 +238,7 @@ def plot(dimension):
 				col.set_xlabel('epoch')
 				cnt+=1
 				col.legend(['train', 'test'], loc='best', fancybox=True, framealpha=0.5)
-		plt.suptitle('Model Loss (scaled data)', fontsize=20, fontweight="bold")
+		plt.suptitle('Model Loss (scaled data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig2.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -263,7 +250,7 @@ def plot(dimension):
 		ax.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
 		ax.set_xlabel('True Values')
 		ax.set_ylabel('Baseline Values')
-		ax.set_title('True vs Baseline (raw data)', fontsize=20, fontweight="bold")
+		ax.set_title('True vs Baseline (raw data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		#plt.show()
 		plt.savefig('model_rawData(baseline).png')
 
@@ -278,7 +265,7 @@ def plot(dimension):
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
-		plt.suptitle('True vs Network (raw data)', fontsize=20, fontweight="bold")
+		plt.suptitle('True vs Network (raw data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig4.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -297,7 +284,7 @@ def plot(dimension):
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
 				cnt+=1
-		plt.suptitle('Comparison (raw data)', fontsize=20, fontweight="bold")
+		plt.suptitle('Comparison (raw data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig5.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -311,12 +298,12 @@ def plot(dimension):
 				col.plot(y_sorted)
 				col.plot(y_pred_scaled[cnt])
 				col.plot(y_net_scaled[cnt])
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all_scaled[cnt]))
 				col.set_ylabel('y Value')
 				col.set_xlabel('Samples')
 				col.legend(['true', 'baseline', 'network'], loc='best', fancybox=True, framealpha=0.5)
 				cnt+=1
-		plt.suptitle('Comparison (scaled data)', fontsize=20, fontweight="bold")
+		plt.suptitle('Comparison (scaled data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig6.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -339,11 +326,11 @@ def plot(dimension):
 			for col in row:
 				col.scatter(y_sorted, y_net_scaled[cnt], edgecolors=(0, 0, 0))
 				col.plot([min(y_sorted), max(y_sorted)], [min(y_sorted), max(y_sorted)], 'k--', lw=4)
-				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all[cnt]))
+				col.set_title('lr =' + str(lr_used[cnt]) + " ,batch =" + str(batches_used[cnt]) + ' ,MSE =' + str(mse_all_scaled[cnt]))
 				col.set_ylabel('Network Values')
 				col.set_xlabel('True Values')
 				cnt+=1
-		plt.suptitle('True vs Network (scaled data)', fontsize=20, fontweight="bold")
+		plt.suptitle('True vs Network (scaled data) - ' + str(time_steps), fontsize=20, fontweight="bold")
 		fig8.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
@@ -363,23 +350,28 @@ y_net_scaled = []
 best_lr = 0
 best_batch = 0
 best_error = 100
-models = 4
+models = 16
 mse_all = []
+mse_all_scaled = []
 epochs = 1000
 time_steps = int(ra.uniform(5,20))
+random_time_steps = []
 X_rnn = x_copy(X, time_steps)
 X_rnn_scaled = x_copy(X_scaled, time_steps)
 y_rnn = y_select(time_steps)
+random_time_steps.append(time_steps)
 
 for model in range (models):
+	print("model no: ",model)
 	batch = np.random.choice(batches)
 	learningrate = np.random.choice(lrs)
 	batches_used.append(batch)
+
 	lr_used.append(learningrate)
 	if (Training):
 		print("Start Training for configs: lr = " + str(learningrate) + " , batch size =" + str(batch))
-		history.append(mlp(X_rnn, y_rnn, batch, epochs, time_steps, input_length, learning_rate = learningrate, raw = True))
-		history_scaled.append(mlp(X_rnn_scaled, y_rnn, batch, epochs, time_steps, input_length, learning_rate = learningrate, raw = False))
+		history.append(mlp(X_rnn, y_rnn, batch, epochs, time_steps, learning_rate = learningrate, raw = True))
+		history_scaled.append(mlp(X_rnn_scaled, y_rnn, batch, epochs, time_steps, learning_rate = learningrate, raw = False))
 		
 		raw = False
 		test(X_rnn_scaled, raw)
@@ -417,6 +409,13 @@ for model in range (models):
 	# The difference between the mlp and the baseline
 	y_error = abs(pred - net)
 	print("baseline scores predict raw data: ", np.mean(y_error))
+
+	mse_all.append(mean_squared_error(y, net))
+	
+	if (mean_squared_error(y, net) < best_error):
+		best_error = mean_squared_error(y, net)
+		best_batch = batch
+		best_lr = learningrate
 	
 	y_pred.append(pred)
 	y_net.append(np.array(net))
@@ -426,25 +425,27 @@ for model in range (models):
 	lr = linear_model.LinearRegression()
 
 	# Predict using the fitted model (raw data)
-	pred = cross_val_predict(lr, X_scaled_sorted, y_sorted, cv=3)
+	pred_scaled = cross_val_predict(lr, X_scaled_sorted, y_sorted, cv=3)
 
 	# Predict using the network (raw data)
 	raw = False
-	net = evaluate(X_scaled_sorted, raw)
+	net_scaled = evaluate(X_scaled_sorted, raw)
 
 	print("using baseline to compare: ")
 	# The difference between the mlp and the baseline
-	y_error = abs(pred - net)
+	y_error = abs(pred_scaled - net_scaled)
 	print("baseline scores predict scaled data: ", np.mean(y_error))
 
-	mse_all.append(mean_squared_error(y, net))
+	mse_all_scaled.append(mean_squared_error(y, net_scaled))
 	
-	if (mean_squared_error(y, net) < best_error):
-		best_error = mean_squared_error(y, net)
+	if (mean_squared_error(y, net_scaled) < best_error):
+		best_error = mean_squared_error(y, net_scaled)
 		best_batch = batch
 		best_lr = learningrate
 
-	y_pred_scaled.append(pred)
-	y_net_scaled.append(np.array(net))
+	y_pred_scaled.append(pred_scaled)
+	y_net_scaled.append(np.array(net_scaled))
+
+	print("Randomized time-steps: ",time_steps)
 
 plot(models)
