@@ -120,8 +120,18 @@ def y_select(y_original, time_steps):
 	y_selected = np.asarray(y_selected)
 	return y_selected
 
+def y_select_targets(y_selected, time_steps):
 
-	return X_scaled
+	# select y given sequence length
+	y_out = np.zeros((y_selected.shape[0],time_steps-1))
+
+	for y, i in zip(y_selected, range(y_selected.shape[0])):
+		y_out[i] = np.delete(y, [time_steps-1])
+	
+	return y_out
+
+
+
 def prepare_rnn_input(X, y_selected, time_steps):
 	
 	# gets copied x and concatenates it with y

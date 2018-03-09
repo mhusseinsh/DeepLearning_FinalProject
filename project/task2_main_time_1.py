@@ -55,9 +55,9 @@ if __name__ == "__main__":
 	n_estimators = [4,8,16,32]
 	bootstrap = [True, False]
 	min_samples_leaf = [1,2,4,8]
-	models = 2
-	epochs = [5]
-	select_time = 5
+	models = 20
+	epochs = [500]
+	select_time = 20
 	time_steps = [select_time]
 	time = [5, 10, 20, 30]
 

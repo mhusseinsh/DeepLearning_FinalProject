@@ -102,27 +102,28 @@ def plot_baseline_vs_true_2(targets, baseline_predictions):
 	plt.title('True vs Baseline')
 	plt.savefig('task2_true_baseline.png')
 
-def plot_learning_curves(all_predictions, targets, params, select_time, t):
-	transposed = np.array(all_predictions).T
-	fig7, ax = plt.subplots(5, 8)
+def plot_learning_curves(all_predictions, targets, params, select_time):
+	#transposed = np.array(all_predictions).T
+	fig7, ax = plt.subplots()
 
 	cnt = 0
-	for row in ax:
-		for col in row:
-			col.plot(transposed[cnt])
-			col.plot(targets[cnt])
-			#col.set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1]))
-			col.set_ylabel('values')
-			col.set_xlabel('epoch')
-			cnt+=1
-	plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
-	plt.suptitle('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1])
-		 + ", alpha = " + str(params[4]), fontsize=20, fontweight="bold")
+	for col in all_predictions.shape[0]:
+		
+		col.plot(all_predictions[cnt])
+		col.plot(targets[cnt])
+		#col.set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1]))
+		col.set_ylabel('values')
+		col.set_xlabel('epoch')
+		cnt+=1
+		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
+		plt.suptitle('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1])
+			 + ", alpha = " + str(params[4]), fontsize=20, fontweight="bold")
 
-	fig7.set_size_inches(18.5, 10.5, forward=True)
-	plt.tight_layout()
-	plt.subplots_adjust(top=0.85)
-	fig7.savefig('predictions_true_curves_'+str(t)+'.png')
+		fig7.set_size_inches(18.5, 10.5, forward=True)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		#fig7.savefig('predictions_true_curves_'+str(t)+'.png')
+		fig7.savefig(str(col) + '_predictions_true_curves.png')
 	
 def plot(dimension):
 		# Loss (raw data)
