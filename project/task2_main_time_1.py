@@ -55,8 +55,8 @@ if __name__ == "__main__":
 	n_estimators = [4,8,16,32]
 	bootstrap = [True, False]
 	min_samples_leaf = [1,2,4,8]
-	models = 20
-	epochs = [500]
+	models = 2
+	epochs = [5]
 	select_time = 20
 	time_steps = [select_time]
 	time = [5, 10, 20, 30]
@@ -77,9 +77,9 @@ if __name__ == "__main__":
 
 		
 	# prepare data for cv
-	rnn_input = prepare_rnn_input(data_scaled, targets_selected_for_input, select_time).reshape(-1, 1, 1 + data.shape[1])
+	rnn_input = prepare_rnn_input(data_scaled, targets_selected_for_input, select_time).reshape(-1, select_time-1, 1 + data.shape[1])
 
-	rnn_targets = prepare_rnn_targets(targets_selected, select_time).reshape(-1,1)
+	rnn_targets = prepare_rnn_targets(targets_selected, select_time).reshape(-1, select_time-1,1)
 
 	#print(rnn_input[0], rnn_targets[0])
 	# prepare data for train and validation
@@ -125,16 +125,16 @@ if __name__ == "__main__":
 		print("%f (%f) with: %r" % (mean, stdev, param))	
 
 	best_model = rnn(learning_rate=random_search.best_params_.get("learning_rate"), 
-		batch_size=random_search.best_params_.get("batch_size"), 
-		num_epochs = random_search.best_params_.get("num_epochs"),
-		time_steps = random_search.best_params_.get("time_steps"),
-		alpha = random_search.best_params_.get("alpha"))
+					batch_size=random_search.best_params_.get("batch_size"), 
+					num_epochs = random_search.best_params_.get("num_epochs"),
+					time_steps = random_search.best_params_.get("time_steps"),
+					alpha = random_search.best_params_.get("alpha"))
 
 	# loss of training after the best model is found
-	loss = best_model.fit(rnn_input.reshape(-1, 1, 1 + data.shape[1]), 
-		rnn_targets.reshape(-1,1),
+	"""loss = best_model.fit(rnn_input.reshape(-1, select_time-1, 1 + data.shape[1]), 
+		rnn_targets.reshape(-1, select_time-1,1),
 		epochs = random_search.best_params_.get("num_epochs"),
-		batch_size=random_search.best_params_.get("batch_size"))
+		batch_size=random_search.best_params_.get("batch_size"))"""
 
 	
 	save_model(best_model, select_time)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
 	#***********************************************************
 
-	predictions = best_model.predict(rnn_input.reshape(-1, 1, 1 + data.shape[1]))
+	predictions = best_model.predict(rnn_input)
 	
 	# prepare predictions for future
 	reshaped_predictions = predictions.reshape(data.shape[0],-1)
@@ -164,20 +164,20 @@ if __name__ == "__main__":
 	#all_predictions = [p for p in reshaped_transposed_predictions]
 
 	# if t = 10, predict next 30 
-	for s in range(5 , 41):
+	for s in range(select_time , 41):
 		# an intermediate array for predictions
 		last_predictions = np.zeros((data.shape[0],1))
 		# for each data point (265), get the last prediction
 		for i in range(data.shape[0]):
 			last_predictions[i] = reshaped_predictions[i][-1]
-		print("s: ", last_predictions)
+		#print("s: ", last_predictions)
 		rnn_input = prepare_rnn_input_future(data_scaled, last_predictions).reshape(-1, 1, 1 + data.shape[1])
 
 		# prepare new rnn input using the last prediction
 		#rnn_input_future = prepare_rnn_input_future(data_scaled, last_predictions)
 
 		# make new predictions
-		predictions = best_model.predict(rnn_input.reshape(-1, 1, 1 + data.shape[1]))
+		predictions = best_model.predict(rnn_input)
 		all_predictions = np.insert(all_predictions,-1,predictions, axis = 1)
 		# prepare predictions for future
 		reshaped_predictions = predictions.reshape(data.shape[0],-1)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
 	mse = mean_squared_error(targets, predictions.reshape(targets.shape[0],))
 	#plot_predictions(predictions.reshape(targets.shape[0],),targets,select_time)
-	plot_loss_rnn(loss.history['loss'], params, select_time)	
-	plot_rnn_vs_true(targets, predictions, params, select_time)
-	plot_learning_curves(all_predictions, targets_original, params, select_time)
+	#plot_loss_rnn(loss.history['loss'], params, select_time)	
+	#plot_rnn_vs_true(targets, predictions, params, select_time)
+	#plot_learning_curves(all_predictions, targets_original, params, select_time)
 	

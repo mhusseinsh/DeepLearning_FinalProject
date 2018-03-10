@@ -36,15 +36,15 @@ from keras.optimizers import SGD
 from keras.optimizers import Adam
 from keras.regularizers import l1,l2
 
-def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha):
+def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha, ):
 
 	model = Sequential()
 	#model.add(LSTM(64, return_sequences = True, input_shape = (time_steps - 1, 6)))
 	#model.add(LSTM(64, return_sequences = True, input_shape = (1, None)))
 	#model.add(Masking(mask_value=0., input_shape=(1, 6)))
-	model.add(LSTM(64, return_sequences = True, input_shape = (1, 6)))
+	model.add(LSTM(64, return_sequences = True, input_shape = (1, 6), stateful = True))
 	
-	model.add(LSTM(64, return_sequences = True))
+	model.add(LSTM(64, return_sequences = True, stateful = True))
 	model.add(Flatten())
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 

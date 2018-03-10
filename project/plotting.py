@@ -107,7 +107,7 @@ def plot_learning_curves(all_predictions, targets, params, select_time):
 	fig7, ax = plt.subplots()
 
 	cnt = 0
-	for col in all_predictions.shape[0]:
+	for col in range(all_predictions.shape[0]):
 		
 		col.plot(all_predictions[cnt])
 		col.plot(targets[cnt])

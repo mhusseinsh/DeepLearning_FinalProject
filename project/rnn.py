@@ -42,11 +42,11 @@ def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha):
 	#model.add(LSTM(64, return_sequences = True, input_shape = (time_steps - 1, 6)))
 	#model.add(LSTM(64, return_sequences = True, input_shape = (1, None)))
 	#model.add(LSTM(64, return_sequences = True, input_shape = (None, 6)))
-	model.add(LSTM(64, return_sequences = True, input_shape = (1, 6)))
+	model.add(LSTM(64, return_sequences = True, input_shape = (None, 6)))
 	#print(model.get_output_at(0).get_shape().as_list())
 	model.add(LSTM(64, return_sequences = True))
 	#print(model.get_output_at(0).get_shape().as_list())
-	model.add(Flatten())
+	#model.add(Flatten())
 	#print(model.get_output_at(0).get_shape().as_list())
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))

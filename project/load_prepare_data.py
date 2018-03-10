@@ -170,20 +170,26 @@ def data_randomize(X, y_original):
 	#randomly reproduce x and y
 	input_lengths = [i for i in range(4,20)]
 	random_lengths = np.random.choice(input_lengths, X.shape[0])
+	x_copied = []
 
 	# randomly reproduced x
-	x_copied = np.repeat(X, random_lengths, axis=0)
+	for x, r in zip(X, random_lengths):
+		x_copied.append(np.repeat([x], r, axis=0))
+
+	x_list = [x.tolist() for x in x_copied]
 
 	y_selected = y_original.tolist()
 	for row, t in zip(y_selected, random_lengths):
 		del row[t:]
 	y_selected = np.array(y_selected)
 
-	return x_copied, y_selected
+	return x_list, y_selected,random_lengths
 
 def prepare_rnn_input_random(x_copied, y_selected):
 
 	#random input for rnn
+	print(x_copied.shape[0])
+	exit()
 	y_flat = np.zeros((x_copied.shape[0],1))
 	i = 0
 	for y_s in y_selected:
