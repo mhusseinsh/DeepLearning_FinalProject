@@ -102,28 +102,74 @@ def plot_baseline_vs_true_2(targets, baseline_predictions):
 	plt.title('True vs Baseline')
 	plt.savefig('task2_true_baseline.png')
 
-def plot_learning_curves(all_predictions, targets, params, select_time):
+#def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
+def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min):
 	#transposed = np.array(all_predictions).T
-	fig7, ax = plt.subplots()
 
+	fig7, axarr = plt.subplots(2, sharex=True)
+	axarr[0].plot(max_pred)
+	axarr[0].plot(max_t)
+
+	axarr[0].set_ylabel('values')
+	axarr[0].set_xlabel('epoch')
+	axarr[0].set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1])
+			 + ", alpha = " + str(params[4]) + ", MSE= "+str(mse_max), fontsize=20, fontweight="bold")
+	
+	axarr[1].plot(min_pred)
+	axarr[1].plot(min_t)
+
+	axarr[1].set_ylabel('values')
+	axarr[1].set_xlabel('epoch')
+	axarr[1].set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1])
+			 + ", alpha = " + str(params[4]) + ", MSE= "+str(mse_min), fontsize=20, fontweight="bold")
+	fig7.set_size_inches(18.5, 10.5, forward=True)
+	plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig7.savefig(str(select_time) + '_best_and_worst_predictions_true_curves.png')
+
+def plot_learning_curves_random(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min):
+	#transposed = np.array(all_predictions).T
+
+	fig8, axarr = plt.subplots(2, sharex=True)
+	axarr[0].plot(max_pred)
+	axarr[0].plot(max_t)
+
+	axarr[0].set_ylabel('values')
+	axarr[0].set_xlabel('epoch')
+	axarr[0].set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) 
+			 + ", alpha = " + str(params[2]) + ", MSE= "+str(mse_max), fontsize=20, fontweight="bold")
+	
+	axarr[1].plot(min_pred)
+	axarr[1].plot(min_t)
+
+	axarr[1].set_ylabel('values')
+	axarr[1].set_xlabel('epoch')
+	axarr[1].set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) 
+			 + ", alpha = " + str(params[2]) + ", MSE= "+str(mse_min), fontsize=20, fontweight="bold")
+	fig8.set_size_inches(18.5, 10.5, forward=True)
+	plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig8.savefig('Randomized_'+str(select_time) + '_best_and_worst_predictions_true_curves.png')
+
+def plot_all_learning_curves_random(predictions, targets, params, select_time, mses):
 	cnt = 0
-	for col in range(all_predictions.shape[0]):
-		
-		col.plot(all_predictions[cnt])
-		col.plot(targets[cnt])
-		#col.set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1]))
-		col.set_ylabel('values')
-		col.set_xlabel('epoch')
-		cnt+=1
-		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
-		plt.suptitle('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) + " ,batch = " + str(params[1])
-			 + ", alpha = " + str(params[4]), fontsize=20, fontweight="bold")
+	for col in range(predictions.shape[0]):
+		fig9, ax = plt.subplots()
+		ax.plot(predictions[col])
+		ax.plot(targets[col])
 
-		fig7.set_size_inches(18.5, 10.5, forward=True)
+		ax.set_title('Predictions with input length '+ str(select_time) + 'lr = ' + str(params[0]) 
+			 + ", alpha = " + str(params[2]) + ", MSE= "+str(mses[col]), fontsize=20, fontweight="bold")
+		ax.set_ylabel('values')
+		ax.set_xlabel('epoch')
+		cnt+=1
+		fig9.set_size_inches(18.5, 10.5, forward=True)
+		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		#fig7.savefig('predictions_true_curves_'+str(t)+'.png')
-		fig7.savefig(str(col) + '_predictions_true_curves.png')
+		fig9.savefig(str(col)+'_Randomized_'+str(select_time) + '_best_and_worst_predictions_true_curves.png')
 	
 def plot(dimension):
 		# Loss (raw data)

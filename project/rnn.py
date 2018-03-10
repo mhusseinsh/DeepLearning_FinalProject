@@ -39,32 +39,25 @@ from keras.regularizers import l1,l2
 def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha):
 
 	model = Sequential()
-	#model.add(LSTM(64, return_sequences = True, input_shape = (time_steps - 1, 6)))
-	#model.add(LSTM(64, return_sequences = True, input_shape = (1, None)))
-	#model.add(LSTM(64, return_sequences = True, input_shape = (None, 6)))
 	model.add(LSTM(64, return_sequences = True, input_shape = (None, 6)))
-	#print(model.get_output_at(0).get_shape().as_list())
+
 	model.add(LSTM(64, return_sequences = True))
-	#print(model.get_output_at(0).get_shape().as_list())
-	#model.add(Flatten())
-	#print(model.get_output_at(0).get_shape().as_list())
+
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
-	#print(model.get_output_at(0).get_shape().as_list())
+
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
-	#print(model.get_output_at(0).get_shape().as_list())
+
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
-	#model.summary()
+
 	initial_lr = learning_rate[0]
 	final_lr = learning_rate[1]
 	decay_factor = (initial_lr - final_lr)/num_epochs
 	
 	adam = Adam(lr=learning_rate, decay = decay_factor)
-	#adam = Adam(lr=learning_rate)
-	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 
-	#history = model.fit(X, y, epochs = num_epochs, batch_size = batch_size, validation_split = 0.1, shuffle = True)
+	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 
 	return model
 

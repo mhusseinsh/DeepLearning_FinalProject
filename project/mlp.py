@@ -52,27 +52,6 @@ def mlp(batch_size, num_epochs, learning_rate, raw, alpha):
 	
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 
-	
-	
-
-	#history = model.fit(X, y, epochs = num_epochs, batch_size = batch_size, shuffle = True, callbacks = callback_list)
-
-	"""if raw == True:
-					model_json = model.to_json()
-					with open("model_raw.json", "w") as json_file:
-						json_file.write(model_json)
-			
-					model.save_weights("model_raw.h5")
-			
-					#print("raw model is saved with parameters: learning rate = " + str(learning_rate) + ", batch size = " + str(batch_size) + ", alpha: " + str(alpha)+", raw = " + str(raw))
-				else:
-					model_json = model.to_json()
-					with open("model_pre.json", "w") as json_file:
-						json_file.write(model_json)
-			
-					model.save_weights("model_pre.h5")"""
-		#print("preprocessed model is saved with parameters: learning rate = " + str(learning_rate) + ", batch size = " + str(batch_size) + ", alpha: " + str(alpha)+", raw = " + str(raw))
-	#return history, model, l_rates
 	return model
 
 def save_model(model, raw):

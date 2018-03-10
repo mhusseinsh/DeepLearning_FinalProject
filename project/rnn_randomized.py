@@ -36,16 +36,12 @@ from keras.optimizers import SGD
 from keras.optimizers import Adam
 from keras.regularizers import l1,l2
 
-def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha, ):
+def rnn(num_epochs, learning_rate, alpha):
 
 	model = Sequential()
-	#model.add(LSTM(64, return_sequences = True, input_shape = (time_steps - 1, 6)))
-	#model.add(LSTM(64, return_sequences = True, input_shape = (1, None)))
-	#model.add(Masking(mask_value=0., input_shape=(1, 6)))
-	model.add(LSTM(64, return_sequences = True, input_shape = (1, 6), stateful = True))
+	model.add(LSTM(64, return_sequences = True, batch_input_shape = (1, 1, 6), stateful = True))
 	
 	model.add(LSTM(64, return_sequences = True, stateful = True))
-	model.add(Flatten())
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
@@ -59,10 +55,7 @@ def rnn(batch_size, num_epochs, learning_rate, time_steps, alpha, ):
 	decay_factor = (initial_lr - final_lr)/num_epochs
 	
 	adam = Adam(lr=learning_rate, decay = decay_factor)
-	#adam = Adam(lr=learning_rate)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
-
-	#history = model.fit(X, y, epochs = num_epochs, batch_size = batch_size, validation_split = 0.1, shuffle = True)
 
 	return model
 
