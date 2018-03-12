@@ -55,8 +55,8 @@ if __name__ == "__main__":
 	n_estimators = [4,8,16,32]
 	min_samples_leaf = [1,2,4,8]
 	time = [5, 10, 20, 30]
-	epochs = [15]
-	models = 10
+	epochs = [5]
+	models = 3
 	batch = [1]
 	
 	
@@ -66,16 +66,20 @@ if __name__ == "__main__":
 	#m_train_data, m_train_scaled_data, m_train_targets, m_valid_data, m_valid_scaled_data, m_valid_targets = get_train_validation_data(data, data_scaled, targets_original)
 
 	# prepare data for random sequence length
-	data_randomly_replicated, targets_randomly_selected, random_lengths = data_randomize(data_scaled, targets_original)
+	_, targets_randomly_selected, random_lengths = data_randomize(data_scaled, targets_original)
+
+	padded_targets = pad_targets_to_20(targets_randomly_selected)
+	rnn_input = prepare_rnn_input(data_scaled, padded_targets, 20).reshape(-1, 19, 1 + data.shape[1])
+	rnn_targets = prepare_rnn_targets(padded_targets, 20).reshape(-1, 19,1)
 	
 	# prepare data for cv 
-	rnn_input = prepare_rnn_input_random(data_randomly_replicated, targets_randomly_selected).reshape(-1, 1, 1 + data.shape[1])
+	#rnn_input = prepare_rnn_input_random(data_randomly_replicated, targets_randomly_selected).reshape(-1, 1, 1 + data.shape[1])
 
-	rnn_targets = prepare_rnn_targets_random(targets_randomly_selected, rnn_input.shape[0]).reshape(-1, 1,1)
+	#rnn_targets = prepare_rnn_targets_random(targets_randomly_selected, rnn_input.shape[0]).reshape(-1, 1,1)
 	
-	rnn_input_to_delete = prepare_rnn_input_random(data_randomly_replicated, targets_randomly_selected).reshape(-1, 1, 1 + data.shape[1])
+	#rnn_input_to_delete = prepare_rnn_input_random(data_randomly_replicated, targets_randomly_selected).reshape(-1, 1, 1 + data.shape[1])
 
-	rnn_targets_to_delete = prepare_rnn_targets_random(targets_randomly_selected, rnn_input_to_delete.shape[0]).reshape(-1, 1,1)
+	#rnn_targets_to_delete = prepare_rnn_targets_random(targets_randomly_selected, rnn_input_to_delete.shape[0]).reshape(-1, 1,1)
 
 
 	# prepare data for train and validation splits
@@ -101,7 +105,7 @@ if __name__ == "__main__":
 
 	random_search = RandomizedSearchCV(estimator = model, random_state = seed, param_distributions=param_dist, n_iter = models)
 	
-	random_search.fit(rnn_input_to_delete, rnn_targets_to_delete)
+	random_search.fit(rnn_input, rnn_targets)
 
 	# summarize results
 	print("Best: %f using %s" % (random_search.best_score_, random_search.best_params_))
@@ -111,17 +115,17 @@ if __name__ == "__main__":
 	for mean, stdev, param in zip(means, stds, params):
 		print("%f (%f) with: %r" % (mean, stdev, param))	
 
-	model = rnn(learning_rate=random_search.best_params_.get("learning_rate"),
-		num_epochs = random_search.best_params_.get("num_epochs"),
-		alpha = random_search.best_params_.get("alpha"))
+	"""model = rnn(learning_rate=random_search.best_params_.get("learning_rate"),
+					num_epochs = random_search.best_params_.get("num_epochs"),
+					alpha = random_search.best_params_.get("alpha"))"""
 
-	for r in random_lengths:
-		
-		model.fit(rnn_input_to_delete[:r], rnn_targets_to_delete[:r], batch_size = 1, shuffle = False, epochs = random_search.best_params_.get("num_epochs"))
-		#weights = model.get_weights()
-		rnn_input_to_delete = rnn_input_to_delete[r:]
-		model.reset_states()
-		#model.set_weights(weights)
+	"""for r in random_lengths:
+					
+					model.fit(rnn_input_to_delete[:r], rnn_targets_to_delete[:r], batch_size = 1, shuffle = False, epochs = random_search.best_params_.get("num_epochs"))
+					weights = model.get_weights()
+					rnn_input_to_delete = rnn_input_to_delete[r:]
+					model.reset_states()
+					model.set_weights(weights)"""
 	
 	# loss of training after the best model is found
 	"""loss = best_model.train_on_batch(train_rnn_input.reshape(-1, 1, 1 + data.shape[1]), 
@@ -136,39 +140,40 @@ if __name__ == "__main__":
 
 	val_predictions = best_model.predict(valid_rnn_input.reshape(-1, 1, 1 + data.shape[1]))"""
 	# store best parameter set for plotting
-	params = [random_search.best_params_.get("learning_rate"), 
-		random_search.best_params_.get("num_epochs"), 
-		random_search.best_params_.get("alpha")]
+	params = [random_search.best_params_.get("learning_rate"), random_search.best_params_.get("num_epochs"), random_search.best_params_.get("alpha")]
 	# predict using given data
 	for t in time:
 		targets_selected = y_select(targets_original, t)
+		print(targets_selected.shape)
+		# given time steps, y is prepared 
 		targets_selected_for_input = y_select_targets(targets_selected, t)
-		rnn_input_new = prepare_rnn_input(data_scaled, targets_selected_for_input, t).reshape(-1, 1, 1 + data.shape[1])
-
-		predictions = model.predict(rnn_input_new, batch_size = 1)
+		print(targets_selected_for_input.shape)	
+		# prepare data for cv
+		rnn_input = prepare_rnn_input(data_scaled, targets_selected_for_input, t).reshape(-1, t-1, 1 + data.shape[1])
+		print(rnn_input.shape)
+		predictions = random_search.predict(rnn_input)
+		print(predictions.shape)
+		exit()
 		# prepare predictions for future
-		reshaped_predictions = predictions.reshape(data_scaled.shape[0],-1)
-
-		all_predictions = reshaped_predictions
-
+		 
+		all_predictions = predictions
 		# if t = 10, predict next 30 
 		for s in range(t , 41):
-
 			# an intermediate array for predictions
 			last_predictions = np.zeros((data.shape[0],1))
-
 			# for each data point (265), get the last prediction
 			for i in range(data.shape[0]):
-				last_predictions[i] = reshaped_predictions[i][-1]
-
-			rnn_input_future = prepare_rnn_input_future(data_scaled, last_predictions).reshape(-1, 1, 1 + data.shape[1])
+				last_predictions[i] = predictions[i][-1]
 
 			# prepare new rnn input using the last prediction
+			rnn_input_future = prepare_rnn_input_future(data_scaled, last_predictions).reshape(-1, 1, 1 + data.shape[1])
 
 			# make new predictions
-			predictions = model.predict(rnn_input_future, batch_size = 1).reshape(data_scaled.shape[0],1)
-			#print(predictions)
-			all_predictions = np.insert(all_predictions, -1, predictions.T, axis = 1)
+			predictions = random_search.predict(rnn_input_future).reshape(data_scaled.shape[0],1)
+			print(predictions.shape)
+			exit()
+			
+			all_predictions = np.insert(all_predictions,-1,predictions.T, axis = 1)
 		
 		mse_all =[]
 		for z in range(data.shape[0]):
@@ -178,9 +183,15 @@ if __name__ == "__main__":
 		mse_max = np.argmax(mse_all)
 
 		mse = mean_squared_error(targets_original, all_predictions)
-		plot_all_learning_curves_random(all_predictions,targets_original, params,t,mse_all)
-		plot_learning_curves_random(all_predictions[mse_max], targets_original[mse_max],all_predictions[mse_min], 
-			targets_original[mse_min], params, t, mse_all[mse_max], mse_all[mse_min])
+		plot_learning_curves(all_predictions[mse_max], targets_original[mse_max],
+			all_predictions[mse_min], targets_original[mse_min], params, t, mse_all[mse_max], mse_all[mse_min],select_time)
+
+		plot_rnn_vs_true(targets, predictions, params, select_time, t, mse_all[-1])
+
+		"""mse = mean_squared_error(targets_original, all_predictions)
+								plot_all_learning_curves_random(all_predictions,targets_original, params,t,mse_all)
+								plot_learning_curves_random(all_predictions[mse_max], targets_original[mse_max],all_predictions[mse_min], 
+									targets_original[mse_min], params, t, mse_all[mse_max], mse_all[mse_min])"""
 	
 
 	

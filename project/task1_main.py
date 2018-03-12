@@ -40,13 +40,13 @@ from plotting import *
 
 if __name__ == "__main__":
 
-	#lrs = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
+	lrs = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7,5e-1, 5e-2, 5e-3, 5e-4, 5e-5, 5e-6, 5e-7]
 	#lrs_final = [1e-7, 1e-8]
-	decaying_lrs = [[1e-1, 1e-4],[1e-1, 1e-5],[1e-1, 1e-6],[1e-1, 1e-7],[1e-2, 1e-5],[1e-2, 1e-6],[1e-2, 1e-7],[1e-3, 1e-5],[1e-3, 1e-6],[1e-3, 1e-7],
-			[1e-4, 1e-6],[1e-4, 1e-7],[1e-4, 1e-8],[1e-5, 1e-7]]
-	batches = [8, 16, 32, 64, 128, 256]
-	alphas = [1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-	#alphas = [0]
+	#lrs = [[1e-1, 1e-4],[1e-1, 1e-5],[1e-1, 1e-6],[1e-1, 1e-7],[1e-2, 1e-5],[1e-2, 1e-6],[1e-2, 1e-7],[1e-3, 1e-5],[1e-3, 1e-6],[1e-3, 1e-7],
+	#		[1e-4, 1e-6],[1e-4, 1e-7],[1e-4, 1e-8],[1e-5, 1e-7]]
+	batches = [8, 16, 32]
+	#alphas = [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
+	alphas = [0]
 	
 	max_depth = [2,4,8,16,32]
 	n_estimators = [4,8,16,32]
@@ -72,17 +72,17 @@ if __name__ == "__main__":
 	# Raw model create, cv with random search
 	model_raw = KerasRegressor(build_fn = mlp, verbose = 0)
 
-	param_dist = dict(learning_rate=decaying_lrs, alpha=alphas, batch_size=batches, num_epochs = epochs, raw = raw)
+	param_dist = dict(learning_rate=lrs, alpha=alphas, batch_size=batches, num_epochs = epochs, raw = raw)
 
 	random_search_raw = RandomizedSearchCV(estimator = model_raw, random_state = seed, param_distributions=param_dist, n_iter = models)
 	
 	random_search_raw.fit(data, targets)
 
 	# summarize results of rancom cv 
-	print("Best: %f using %s" % (random_search.best_score_, random_search.best_params_))
-	means = random_search.cv_results_['mean_test_score']
-	stds = random_search.cv_results_['std_test_score']
-	params = random_search.cv_results_['params']
+	print("Best: %f using %s" % (random_search_raw.best_score_, random_search_raw.best_params_))
+	means = random_search_raw.cv_results_['mean_test_score']
+	stds = random_search_raw.cv_results_['std_test_score']
+	params = random_search_raw.cv_results_['params']
 	for mean, stdev, param in zip(means, stds, params):
 		print("%f (%f) with: %r" % (mean, stdev, param))	
 
@@ -108,11 +108,11 @@ if __name__ == "__main__":
 	mse_raw = mean_squared_error(targets, predictions)
 				
 	# best parameters' list for plotting later
-	params_raw = [random_search.best_params_.get("learning_rate"), 
-		random_search.best_params_.get("alpha"), 
-		random_search.best_params_.get("batch_size"), 
-		random_search.best_params_.get("num_epochs"), 
-		random_search.best_params_.get("raw")]
+	params_raw = [random_search_raw.best_params_.get("learning_rate"), 
+		random_search_raw.best_params_.get("alpha"), 
+		random_search_raw.best_params_.get("batch_size"), 
+		random_search_raw.best_params_.get("num_epochs"), 
+		random_search_raw.best_params_.get("raw")]
 
 	#save_model(best_model_raw, True)
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 	# Scaled model create, cv with random search
 	model_scaled = KerasRegressor(build_fn = mlp, verbose = 0)
 
-	param_dist = dict(learning_rate=decaying_lrs, alpha=alphas, batch_size=batches, num_epochs = epochs, raw = scaled)
+	param_dist = dict(learning_rate=lrs, alpha=alphas, batch_size=batches, num_epochs = epochs, raw = scaled)
 
 	random_search_scaled = RandomizedSearchCV(estimator = model_scaled, random_state = seed, param_distributions=param_dist, n_iter = models)
 	

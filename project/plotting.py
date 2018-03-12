@@ -103,7 +103,7 @@ def plot_baseline_vs_true_2(targets, baseline_predictions):
 	plt.savefig('task2_true_baseline.png')
 
 #def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
-def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min):
+def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min,time):
 	#transposed = np.array(all_predictions).T
 
 	fig7, axarr = plt.subplots(2, sharex=True)
@@ -126,8 +126,8 @@ def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,m
 	plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 	plt.tight_layout()
 	plt.subplots_adjust(top=0.85)
-	fig7.savefig(str(select_time) + '_best_and_worst_predictions_true_curves.png')
-
+	fig7.savefig('Model '+str(time) + ' with data '+str(select_time) + '_best_and_worst_predictions_true_curves.png')
+	
 def plot_learning_curves_random(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min):
 	#transposed = np.array(all_predictions).T
 

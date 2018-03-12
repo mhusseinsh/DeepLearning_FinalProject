@@ -181,6 +181,12 @@ def data_randomize(X, y_original):
 	y_selected = np.array(y_selected)
 	return x_copied, y_selected,random_lengths
 
+def pad_targets_to_20(y_selected):
+
+	y_selected = pad_sequences(y_selected, maxlen = 20, padding='post', dtype='float')
+
+	return y_selected
+
 def prepare_rnn_input_random(x_copied, y_selected):
 
 	#random input for rnn

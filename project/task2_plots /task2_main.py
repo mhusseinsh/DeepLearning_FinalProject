@@ -39,9 +39,9 @@ from keras import regularizers
 from keras.optimizers import SGD
 from keras.optimizers import Adam
 
-from load_prepare_data import *
-from rnn import *
-from plotting import *
+from "/../load_prepare_data" import *
+from "/../rnn" import *
+from "/../plotting" import *
 
 
 if __name__ == "__main__":
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 	min_samples_leaf = [1,2,4,8]
 	models = 20
 	epochs = [1500]
-	select_time = 5
+	select_time = 20
 	time_steps = [select_time]
 	time = [5, 10, 20, 30]
 

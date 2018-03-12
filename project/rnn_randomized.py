@@ -39,9 +39,9 @@ from keras.regularizers import l1,l2
 def rnn(num_epochs, learning_rate, alpha):
 
 	model = Sequential()
-	model.add(LSTM(64, return_sequences = True, batch_input_shape = (1, 1, 6), stateful = True))
+	model.add(LSTM(64, return_sequences = True,input_shape = (None, 6)))#, batch_input_shape = (1, 1, 6), stateful = True))
 	
-	model.add(LSTM(64, return_sequences = True, stateful = True))
+	model.add(LSTM(64, return_sequences = True))#, stateful = True))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))

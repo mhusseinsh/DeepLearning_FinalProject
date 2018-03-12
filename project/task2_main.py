@@ -142,7 +142,7 @@ if __name__ == "__main__":
 	#PREPARE RNN INPUT FOR DIFFERENT LENGTHS
 
 	#***********************************************************
-	for t in time_steps:
+	for t in time:
 		rnn_input_new = prepare_rnn_input(data_scaled, targets_selected_for_input, t).reshape(-1, t-1, 1 + data.shape[1])
 
 		predictions = random_search.predict(rnn_input_new)
@@ -174,7 +174,8 @@ if __name__ == "__main__":
 		mse_max = np.argmax(mse_all)
 
 		mse = mean_squared_error(targets_original, all_predictions)
-		plot_learning_curves(all_predictions[mse_max], targets_original[mse_max],all_predictions[mse_min], targets_original[mse_min], params, t, mse_all[mse_max], mse_all[mse_min])
+		plot_learning_curves(all_predictions[mse_max], targets_original[mse_max],all_predictions[mse_min], 
+			targets_original[mse_min], params, t, mse_all[mse_max], mse_all[mse_min], select_time)
 	"""
 				# Baseline as random forest
 				rf_raw = RandomForestRegressor()
