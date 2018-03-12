@@ -45,15 +45,15 @@ if __name__ == "__main__":
 	#lrs = [[1e-1, 1e-4],[1e-1, 1e-5],[1e-1, 1e-6],[1e-1, 1e-7],[1e-2, 1e-5],[1e-2, 1e-6],[1e-2, 1e-7],[1e-3, 1e-5],[1e-3, 1e-6],[1e-3, 1e-7],
 	#		[1e-4, 1e-6],[1e-4, 1e-7],[1e-4, 1e-8],[1e-5, 1e-7]]
 	batches = [8, 16, 32]
-	#alphas = [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
-	alphas = [0]
+	alphas = [1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
+	#alphas = [0]
 	
 	max_depth = [2,4,8,16,32]
 	n_estimators = [4,8,16,32]
 	bootstrap = [True, False]
 	min_samples_leaf = [1,2,4,8]
-	models = 20
-	epochs = [1500]
+	models = 36
+	epochs = [5000]
 	raw = [True]
 	scaled = [False]
 	

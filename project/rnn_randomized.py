@@ -36,25 +36,49 @@ from keras.optimizers import SGD
 from keras.optimizers import Adam
 from keras.regularizers import l1,l2
 
-def rnn(num_epochs, learning_rate, alpha):
+def rnn_for_padding(num_epochs, learning_rate, alpha):
 
 	model = Sequential()
-	model.add(LSTM(64, return_sequences = True,input_shape = (None, 6)))#, batch_input_shape = (1, 1, 6), stateful = True))
+	model.add(LSTM(64, return_sequences = True,input_shape = (None, 6)))
 	
-	model.add(LSTM(64, return_sequences = True))#, stateful = True))
+	model.add(LSTM(64, return_sequences = True))
 
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(Dense(64, 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
 
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(Dense(64, 
 		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
-	model.add(Dense(1, kernel_initializer = 'random_uniform'))
+	model.add(Dense(1))
 	
 	initial_lr = learning_rate[0]
 	final_lr = learning_rate[1]
 	decay_factor = (initial_lr - final_lr)/num_epochs
 	
 	adam = Adam(lr=learning_rate, decay = decay_factor)
+	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
+
+	return model
+
+def rnn_for_stateful(num_epochs, learning_rate, alpha):
+
+	model = Sequential()
+	model.add(LSTM(64, return_sequences = True , batch_input_shape = (1, 1, 6), stateful = True))
+	
+	model.add(LSTM(64, return_sequences = True, stateful = True))
+
+	model.add(Dense(64,
+		bias_initializer = 'zeros', activation = 'relu'))
+
+	model.add(Dense(64, 
+		bias_initializer = 'zeros', activation = 'relu'))
+	model.add(Dense(1))
+	
+	initial_lr = learning_rate[0]
+	final_lr = learning_rate[1]
+	decay_factor = (initial_lr - final_lr)/num_epochs
+	
+	adam = Adam(lr=learning_rate, decay = decay_factor)
+	#adam = Adam(lr=learning_rate)
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 
 	return model

@@ -40,7 +40,7 @@ from keras.optimizers import SGD
 from keras.optimizers import Adam
 
 from load_prepare_data import *
-from rnn_randomized import *
+from rnn_randomized import rnn_for_padding as rnn
 from plotting import *
 
 
@@ -141,40 +141,42 @@ if __name__ == "__main__":
 	val_predictions = best_model.predict(valid_rnn_input.reshape(-1, 1, 1 + data.shape[1]))"""
 	# store best parameter set for plotting
 	params = [random_search.best_params_.get("learning_rate"), random_search.best_params_.get("num_epochs"), random_search.best_params_.get("alpha")]
+	print(random_lengths)
 	# predict using given data
 	for t in time:
 		targets_selected = y_select(targets_original, t)
-		print(targets_selected.shape)
 		# given time steps, y is prepared 
 		targets_selected_for_input = y_select_targets(targets_selected, t)
-		print(targets_selected_for_input.shape)	
 		# prepare data for cv
 		rnn_input = prepare_rnn_input(data_scaled, targets_selected_for_input, t).reshape(-1, t-1, 1 + data.shape[1])
-		print(rnn_input.shape)
+
 		predictions = random_search.predict(rnn_input)
-		print(predictions.shape)
-		exit()
+
+	
 		# prepare predictions for future
 		 
-		all_predictions = predictions
+		all_predictions = targets_selected
 		# if t = 10, predict next 30 
 		for s in range(t , 41):
 			# an intermediate array for predictions
-			last_predictions = np.zeros((data.shape[0],1))
-			# for each data point (265), get the last prediction
-			for i in range(data.shape[0]):
-				last_predictions[i] = predictions[i][-1]
-
+			"""last_predictions = np.zeros((data.shape[0],1))
+												# for each data point (265), get the last prediction
+												for i in range(data.shape[0]):
+													last_predictions[i] = predictions[i][-1]"""
+			#print(last_predictions[0])
 			# prepare new rnn input using the last prediction
-			rnn_input_future = prepare_rnn_input_future(data_scaled, last_predictions).reshape(-1, 1, 1 + data.shape[1])
-
+			#rnn_input_future = prepare_rnn_input_future(data_scaled, last_predictions).reshape(-1, 1, 1 + data.shape[1])
+			rnn_input_future = prepare_rnn_input(data_scaled, predictions, t).reshape(-1, t-1, 1 + data.shape[1])
 			# make new predictions
-			predictions = random_search.predict(rnn_input_future).reshape(data_scaled.shape[0],1)
-			print(predictions.shape)
-			exit()
+			print(predictions[0])
+			print(predictions[1])
+			print(predictions[2])
+			predictions = random_search.predict(rnn_input_future).reshape(data_scaled.shape[0],t-1)
 			
-			all_predictions = np.insert(all_predictions,-1,predictions.T, axis = 1)
-		
+			all_predictions = np.insert(all_predictions,s-1,predictions.T[-1], axis = 1)
+			#print(all_predictions[0])
+			
+		exit()
 		mse_all =[]
 		for z in range(data.shape[0]):
 			mse_all.append(mean_squared_error(targets_original[z], all_predictions[z]))

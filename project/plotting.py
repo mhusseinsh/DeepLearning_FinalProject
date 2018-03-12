@@ -155,7 +155,7 @@ def plot_learning_curves_random(max_pred, max_t, min_pred, min_t, params, select
 
 def plot_all_learning_curves_random(predictions, targets, params, select_time, mses):
 	cnt = 0
-	for col in range(predictions.shape[0]):
+	for col in range(len(predictions)):
 		fig9, ax = plt.subplots()
 		ax.plot(predictions[col])
 		ax.plot(targets[col])
