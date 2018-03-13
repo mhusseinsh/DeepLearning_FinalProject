@@ -160,15 +160,16 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		ax.plot(targets[col])
 
 		ax.set_title('Predictions with input length '+ str(train_time) + ' and pred time: '+ str(pred_time) + ' lr = ' + str(params[0]) 
-			 + ", alpha = " + str(params[2]) + ", MSE= "+str(mses), fontsize=20, fontweight="bold")
+			 + ", alpha = " + str(params[1]) + ", MSE= "+str(mses), fontsize=20, fontweight="bold")
 		ax.set_ylabel('values')
 		ax.set_xlabel('epoch')
 		fig9.set_size_inches(18.5, 10.5, forward=True)
 		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig9.savefig(str(col)+'_'+str(train_time)+'_' +str(pred_time)+ '.png')
-	
+		fig9.savefig('./Plots/Train ' + str(train_time) + '/Test ' + str(pred_time) + '/' + str(col)+ '_' + str(train_time) + '_' + str(pred_time)+ '.png')
+		plt.close()
+
 def plot(dimension):
 		# Loss (raw data)
 		dimension = int(math.sqrt(dimension))

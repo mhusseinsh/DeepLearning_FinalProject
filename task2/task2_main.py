@@ -56,11 +56,12 @@ if __name__ == "__main__":
 	bootstrap = [True, False]
 	min_samples_leaf = [1,2,4,8]
 	models = 30
-	epochs = [1500]
 	select_time = 5
 	time_steps = [select_time]
 	pred_time = [5,10, 20, 30]
 	train_time = [5,10,20]
+	models = 2
+	num_epochs = 1
 
 
 	# randomness
@@ -69,7 +70,9 @@ if __name__ == "__main__":
 	kfold = KFold(n_splits = 3, shuffle = True, random_state = seed)
 
 	for l in train_time:
-		# get data
+		if not os.path.exists("./Plots/Train " + str(l)):
+			os.makedirs("./Plots/Train " + str(l))
+		overall_mse = []
 		data, targets, targets_original = prepare_data()
 		data_scaled = preprocess_data(data)
 
@@ -83,42 +86,58 @@ if __name__ == "__main__":
 
 		rnn_targets = prepare_rnn_targets(targets_selected, l).reshape(-1, l-1,1)
 
-		model = rnn(learning_rate=[1e-3, 1e-7], num_epochs = 1, alpha = 1e-6)
+		best_weights = []
+		lr_used = []
+		alpha_used = []
+		for model in range(models):
+			# randomize hyperparams
+			idx = np.random.randint(0, len(decaying_lrs))
+			learningrate = decaying_lrs[idx]
+			alpha = np.random.choice(alphas)
+			lr_used.append(learningrate)
+			alpha_used.append(alpha)
+			# get data
+			model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 
-		for train, valid in kfold.split(rnn_input, rnn_targets):
-			split_loss = []
-			split_score = []
-			split_mse = []
+			for train, valid in kfold.split(rnn_input, rnn_targets):
+				split_loss = []
+				split_score = []
+				split_mse = []
 
-			all_split_score = []
-			all_split_mse = []
-			all_split_loss=[]
+				all_split_score = []
+				all_split_mse = []
+				all_split_loss=[]
 
-			for x, y in zip(rnn_input[train],rnn_targets[train]):
-				split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]),y.reshape(-1, l-1,1)).history['loss'])
+				for x, y in zip(rnn_input[train],rnn_targets[train]):
+					split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = num_epochs).history['loss'])
 
-			all_split_loss.append(np.mean(split_loss))
+				all_split_loss.append(np.mean(split_loss))
 
-			for x, y in zip(rnn_input[valid],rnn_targets[valid]):
-				split_score.append(model.evaluate(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1)) * 100)
-				preds = model.predict(x.reshape(-1, l-1, 1 + data.shape[1]))
-			
-				split_mse.append(mean_squared_error(preds[0], y))
+				for x, y in zip(rnn_input[valid],rnn_targets[valid]):
+					split_score.append(model.evaluate(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1)) * 100)
+					preds = model.predict(x.reshape(-1, l-1, 1 + data.shape[1]))
+				
+					split_mse.append(mean_squared_error(preds[0], y))
 
-			all_split_score.append(np.mean(split_score))
-			all_split_mse.append(np.mean(split_mse))
-			
+				all_split_score.append(np.mean(split_score))
+				all_split_mse.append(np.mean(split_mse))
+				
 
-		overall_score = np.mean(all_split_score)
-		overall_mse = np.mean(all_split_mse)
-		overall_loss = np.mean(all_split_loss)
+			overall_score = np.mean(all_split_score)
+			overall_mse.append(np.mean(all_split_mse))
+			overall_loss = np.mean(all_split_loss)
+			best_weights.append(model.get_weights())
 
-		new_model = rnn_stateful(learning_rate=[1e-3, 1e-7], num_epochs = 1, alpha = 1e-6)
-		new_model.set_weights(model.get_weights())
-		
-	
+		best = np.argmin(overall_mse)
+		best_lr = lr_used[best]
+		best_alpha = alpha_used[best]
+
+		new_model = rnn_stateful(learning_rate=best_lr, num_epochs = num_epochs, alpha = best_alpha)
+		new_model.set_weights(best_weights[best])
 		
 		for s in pred_time:
+			if not os.path.exists("./Plots/Train " + str(l) + "/Test " + str(s)):
+				os.makedirs("./Plots/Train " + str(l) + "/Test " + str(s))
 			targets_selected = y_select(targets_original, s)
 
 			# given time steps, y is prepared 
@@ -151,8 +170,8 @@ if __name__ == "__main__":
 					
 			predictions = np.c_[targets_selected_for_input.reshape(265,s-1),all_preds]
 			
-			params = [[1e-3, 1e-7],1,1e-6]
-			plot_all_learning_curves(predictions, targets_original, params, l, s, overall_mse)
+			params = [best_lr, best_alpha]
+			plot_all_learning_curves(predictions, targets_original, params, l, s, overall_mse[best])
 
 
 

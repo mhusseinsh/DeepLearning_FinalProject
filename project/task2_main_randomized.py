@@ -112,12 +112,12 @@ if __name__ == "__main__":
 					print("%f (%f) with: %r" % (mean, stdev, param))	"""
 
 	model = rnn(learning_rate=[1e-4, 1e-7],
-		num_epochs = 10,
+		num_epochs = 1000,
 		alpha = 1e-6)
 
 	for r in random_lengths:
 		for x, y in zip(rnn_input_to_delete[:r], rnn_targets_to_delete[:r]):
-			model.fit(x.reshape(-1, 1, 1 + data.shape[1]), y.reshape(-1, 1,1), batch_size = 1, epochs = 10)
+			model.fit(x.reshape(-1, 1, 1 + data.shape[1]), y.reshape(-1, 1,1), batch_size = 1, epochs = 1000)
 			weights = model.get_weights()
 			model.set_weights(weights)
 			#rnn_input_to_delete = rnn_input_to_delete[r:]
