@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
@@ -153,14 +154,14 @@ def plot_learning_curves_random(max_pred, max_t, min_pred, min_t, params, select
 	fig8.savefig('Randomized_'+str(select_time) + '_best_and_worst_predictions_true_curves.png')
 
 def plot_all_learning_curves(predictions, targets, params, train_time, pred_time, mses):
-
+	print("Begin Plotting")
 	for col in range(len(predictions)):
 		fig9, ax = plt.subplots()
 		ax.plot(predictions[col])
 		ax.plot(targets[col])
-
+		plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
 		ax.set_title('Predictions with input length '+ str(train_time) + ' and pred time: '+ str(pred_time) + ' lr = ' + str(params[0]) 
-			 + ", alpha = " + str(params[1]) + ", MSE= "+str(mses), fontsize=20, fontweight="bold")
+			 + ", alpha = " + str(params[1]) + ", MSE = "+str(mses), fontsize=20, fontweight="bold")
 		ax.set_ylabel('values')
 		ax.set_xlabel('epoch')
 		fig9.set_size_inches(18.5, 10.5, forward=True)
@@ -168,6 +169,21 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
 		fig9.savefig('./Plots/Train ' + str(train_time) + '/Test ' + str(pred_time) + '/' + str(col)+ '_' + str(train_time) + '_' + str(pred_time)+ '.png')
+		plt.close()
+
+def plot_box_plots(predictions, params, train_time, pred_time):
+
+		figg, ax = plt.subplots()
+		#for i in (predictions):
+		plt.boxplot([np.log(predictions[0]), np.log(predictions[1]), np.log(predictions[2]), np.log(predictions[3])], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+		ax.set_xticklabels(['5 epochs', '10 epochs', '20 epochs', '30 epochs'])
+		plt.xlabel("Test")
+		plt.ylabel("log(MSE)")
+		plt.title("log (MSE) Quartile", fontsize=20, fontweight="bold")
+		plt.tight_layout()
+		figg.set_size_inches(18.5, 10.5, forward=True)
+		plt.subplots_adjust(top=0.85)
+		figg.savefig('./Plots/Train ' + str(train_time) + '/MSE (Boxplot).png')
 		plt.close()
 
 def plot(dimension):

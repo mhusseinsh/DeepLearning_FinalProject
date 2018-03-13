@@ -60,8 +60,8 @@ if __name__ == "__main__":
 	time_steps = [select_time]
 	pred_time = [5, 10, 20, 30]
 	train_time = [5, 10, 20]
-	models = 20
-	num_epochs = 1000
+	models = 1
+	num_epochs = 1
 
 
 	# randomness
@@ -135,6 +135,8 @@ if __name__ == "__main__":
 		new_model = rnn_stateful(learning_rate=best_lr, num_epochs = num_epochs, alpha = best_alpha)
 		new_model.set_weights(best_weights[best])
 		
+		# Prediction using best model
+		overall_mse_test = []
 		for s in pred_time:
 			if not os.path.exists("./Plots/Train " + str(l) + "/Test " + str(s)):
 				os.makedirs("./Plots/Train " + str(l) + "/Test " + str(s))
@@ -168,13 +170,27 @@ if __name__ == "__main__":
 						preds.append(prediction[0])
 					all_preds.append(np.array(preds).reshape(41-s,))
 					
-			predictions = np.c_[targets_selected_for_input.reshape(265,s-1),all_preds]
+			predictions = np.c_[targets_selected_for_input.reshape(265,s-1), all_preds]
 			
 			params = [best_lr, best_alpha]
+
+			thefile = open(os.path.join('./Plots/Train ' + str(l) + '/', 'Predictions - Test_' + str(s) + '.txt'), 'w')
+			for item in predictions:
+			  thefile.write("%s\n" % item)
+
+			mse_test = []
+			for x, y in zip(predictions[:], targets_original[:]):
+				mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1]))
+
+			mse_test = np.asarray(mse_test)
+			overall_mse_test.append(mse_test)
+			thefile = open(os.path.join('./Plots/Train ' + str(l) + '/', 'MSE - Test_' + str(s) + '.txt'), 'w')
+			for item in mse_test:
+			  thefile.write("%s\n" % item)
+			
 			plot_all_learning_curves(predictions, targets_original, params, l, s, overall_mse[best])
+		plot_box_plots(np.asarray(overall_mse_test), params, l, s)
 
-
-
-
-
-
+	thefile = open(os.path.join('./Plots/', 'targets' + '.txt'), 'w')
+	for item in targets_original:
+	  thefile.write("%s\n" % item)
