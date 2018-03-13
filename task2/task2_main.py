@@ -51,17 +51,17 @@ if __name__ == "__main__":
 			[1e-4, 1e-6],[1e-4, 1e-7],[1e-4, 1e-8],[1e-5, 1e-7]]
 	batches = [8, 16, 32]
 	alphas = [1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-	max_depth = [2,4,8,16,32]
-	n_estimators = [4,8,16,32]
+	max_depth = [2, 4, 8, 16, 32]
+	n_estimators = [4, 8, 16, 32]
 	bootstrap = [True, False]
-	min_samples_leaf = [1,2,4,8]
+	min_samples_leaf = [1, 2, 4, 8]
 	models = 30
 	select_time = 5
 	time_steps = [select_time]
-	pred_time = [5,10, 20, 30]
-	train_time = [5,10,20]
-	models = 2
-	num_epochs = 1
+	pred_time = [5, 10, 20, 30]
+	train_time = [5, 10, 20]
+	models = 20
+	num_epochs = 1000
 
 
 	# randomness
