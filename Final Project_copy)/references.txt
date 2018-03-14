@@ -1,0 +1,10 @@
+How to manage brances?
+https://github.com/Kunena/Kunena-Forum/wiki/Create-a-new-branch-with-git-and-manage-branches
+-------------------------------------------------------------------
+
+Keras tutorial - Regression Problem with baseline (Boston dataset)
+https://machinelearningmastery.com/regression-tutorial-keras-deep-learning-library-python/
+
+-------------------------------------------------------------------
+Build MLP in keras:
+https://machinelearningmastery.com/build-multi-layer-perceptron-neural-network-models-keras/
