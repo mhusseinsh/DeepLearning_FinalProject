@@ -46,78 +46,194 @@ from plotting import *
 
 if __name__ == "__main__":
 
-	n_estimators = [4,8,16,32]
-	bootstrap = [True, False]
-	min_samples_leaf = [1,2,4,8]
-	max_depth = [2,4,8,16,32]
-	models = 3
-	epochs = [5]
-	select_time = 20
-	time_steps = [select_time]
-	time = [5, 10, 20, 30]
+	max_depth = [2, 4, 8, 16, 32]
+	n_estimators = [4, 8, 16, 32]
+	min_samples_leaf = [1, 2, 4, 8]
+	models = 5
+	train_time = [5, 10, 20]
+
+	# randomness
+	kfold = get_folds()
 
 	# get data
 	data, targets, targets_original = prepare_data()
 	data_scaled = preprocess_data(data)
-	targets_selected = y_select(targets_original, select_time)
 
-	#m_train_data, m_train_scaled_data, m_train_targets, m_valid_data, m_valid_scaled_data, m_valid_targets = get_train_validation_data(data, data_scaled, targets_selected)
+	y40 = []
+	for y in targets:
+		y40.append(y[-1])
+	y40_list = [y.tolist() for y in y40]
 
-	# given time steps, y is prepared 
-	targets_selected_for_input = y_select_targets(targets_selected, select_time)
-
-	# Baseline as random forest
+	if not os.path.exists("./Plots/Train/Baselines2"):
+			os.makedirs("./Plots/Train/Baselines2")
 
 
-	seed = 7
-	np.random.seed(seed)
-	"""rf_raw = RandomForestRegressor()
+	for l in train_time:
+
+		if not os.path.exists("./Plots/Train/Baselines2/Test " + str(l)):
+				os.makedirs("./Plots/Train/Baselines2/Test " + str(l))
+
+		targets_selected = y_select(targets_original, l)
+
+		overall_mse = []
+		n_estimator_used = []
+		min_leaf_used = []
+		depth_used = []
+
+
+		for model in range(models):
+			# randomize hyperparams
+			n_estimator = np.random.choice(n_estimators)
+			min_leaf = np.random.choice(min_samples_leaf)
+			depth = np.random.choice(max_depth)
+
+			n_estimator_used.append(n_estimator)
+			min_leaf_used.append(min_leaf)
+			depth_used.append(depth)
+
+			
+
+			all_split_mse = []
+			
+
+			for train, valid in kfold.split(targets_selected, y40_list):
+				rf_raw = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
+				split_input = []
+				split_targets = []
+				for t_index in train:
+					split_input.append(targets_selected[t_index])
+					split_targets.append(y40_list[t_index])
+
+				rf_raw.fit(split_input, split_targets)
+
+				split_input = []
+				split_targets = []
+				for v_index in valid:
+					split_input.append(targets_selected[v_index])
+					split_targets.append(y40_list[v_index])
+
+							
+				raw_predictions = rf_raw.predict(split_input)
+
+				all_split_mse.append(np.mean(mean_squared_error(split_targets, raw_predictions)))
+
+			overall_mse.append(np.mean(all_split_mse))
+
+
+		best = np.argmin(overall_mse)
+		n_estimator = n_estimator_used[best]
+		min_leaf = min_leaf_used[best]
+		depth = depth_used[best]
+
+		
+		raw_predictions = []
+
+		for train, valid in kfold.split(targets_selected, y40_list):
+			rf_raw = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
+			split_input = []
+			split_targets = []
+			for t_index in train:
+				split_input.append(targets_selected[t_index])
+				split_targets.append(y40_list[t_index])
+
+			rf_raw.fit(split_input, split_targets)
+
+			split_input = []
+			split_targets = []
+			for v_index in valid:
+				split_input.append(targets_selected[v_index])
+				split_targets.append(y40_list[v_index])
+
 						
-				param_dist_baseline = dict(max_depth=max_depth, n_estimators=n_estimators, bootstrap=bootstrap, min_samples_leaf = min_samples_leaf)
-			
-				baseline_random_search = RandomizedSearchCV(estimator = rf_raw, random_state = seed, param_distributions=param_dist_baseline, n_iter = models)
-				y40 = []
-				for y in targets:
-					y40.append(y[-1])
-				y40_list = [y.tolist() for y in y40]
-				baseline_random_search.fit(targets_selected, y40_list)
-			
-				# summarize results
-				print("Best: %f using %s" % (baseline_random_search.best_score_, baseline_random_search.best_params_))
-				means = baseline_random_search.cv_results_['mean_test_score']
-				stds = baseline_random_search.cv_results_['std_test_score']
-				params = baseline_random_search.cv_results_['params']
-				for mean, stdev, param in zip(means, stds, params):
-					print("%f (%f) with: %r" % (mean, stdev, param))
-				
-				baseline_predictions = baseline_random_search.predict(targets_selected)
-				mse_baseline = mean_squared_error(targets, baseline_predictions)
-				plot_baseline_vs_true(targets, baseline_predictions,mse_baseline)
-						"""
-	# Last baseline
+			raw_predictions.append(rf_raw.predict(split_input))
 
-	rf_last = RandomForestRegressor()
+		preds = [item for sublist in raw_predictions for item in sublist]
 
-	param_dist_baseline = dict(max_depth=max_depth, n_estimators=n_estimators, bootstrap=bootstrap, min_samples_leaf = min_samples_leaf)
+		plot_baseline_vs_true(y40_list, preds, overall_mse[best], l)
 
-	baseline_random_search_last = RandomizedSearchCV(estimator = rf_last, random_state = seed, param_distributions=param_dist_baseline, n_iter = models)
+	if not os.path.exists("./Plots/Train/Baselines2/Last"):
+		os.makedirs("./Plots/Train/Baselines2/Last")
 
 	inputs_last_baseline, targets_last_baseline = prepare_last_baseline(targets_original)
-	targets_plot = y_select(targets_original, 5)
-	targets_plot_4 = y_select_targets(targets_plot, 5)
+
+	overall_mse = []
+	n_estimator_used = []
+	min_leaf_used = []
+	depth_used = []
+
+	for model in range(models):
+		# randomize hyperparams
+		n_estimator = np.random.choice(n_estimators)
+		min_leaf = np.random.choice(min_samples_leaf)
+		depth = np.random.choice(max_depth)
+
+		n_estimator_used.append(n_estimator)
+		min_leaf_used.append(min_leaf)
+		depth_used.append(depth)
+
+		all_split_mse = []
+
+		for train, valid in kfold.split(inputs_last_baseline, targets_last_baseline):
+			split_mse = []
+			rf_last = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
+			
+			training_data_rf = []
+			training_targets_rf = []
+			for i in (train):
+				training_data_rf.append(inputs_last_baseline[i])
+				training_targets_rf.append(targets_last_baseline[i])
+
+			training_data_rf = np.asarray(training_data_rf)
+			training_targets_rf = np.asarray(training_targets_rf)
+
+			valid_data_rf = []
+			for i in (valid):
+				valid_data_rf.append(inputs_last_baseline[i])
+
+			valid_data_rf = np.asarray(valid_data_rf)
+
+			rf_last.fit(training_data_rf, training_targets_rf)
+
+			predictions = rf_last.predict(valid_data_rf)
+
+			split_mse.append(mean_squared_error(targets_last_baseline[valid], predictions))
+
+		overall_mse.append(np.mean(split_mse))
+
+	best = np.argmin(overall_mse)
+	n_estimator = n_estimator_used[best]
+	min_leaf = min_leaf_used[best]
+	depth = depth_used[best]
+
 	
-	baseline_random_search_last.fit(inputs_last_baseline,targets_last_baseline)
+	predictions_last = []
+	targets_last = []
+	split_mse = []
 
-	baseline_predictions = baseline_random_search_last.predict(inputs_last_baseline).reshape(265, 36)
-	all_pred = np.c_[targets_plot_4,baseline_predictions]
+	for train, valid in kfold.split(inputs_last_baseline, targets_last_baseline):
+		rf_last = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
+		training_data_rf = []
+		training_targets_rf = []
+		for i in (train):
+			training_data_rf.append(inputs_last_baseline[i])
+			training_targets_rf.append(targets_last_baseline[i])
 
-	mse_baseline = mean_squared_error(targets, baseline_predictions[:,-1])
+		training_data_rf = np.asarray(training_data_rf)
+		training_targets_rf = np.asarray(training_targets_rf)
 
-	mse_all =[]
-	for z in range(data.shape[0]):
-		mse_all.append(mean_squared_error(targets_original[z], all_pred[z]))
+		valid_data_rf = []
+		for i in (valid):
+			valid_data_rf.append(inputs_last_baseline[i])
 
-	plot_baseline_vs_true2(targets, baseline_predictions[:,-1],mse_baseline)
-	#params = [[1e-4, 1e-7], 32, 10, 1e-6]	
-	#plot_all_learning_curves_random(all_pred, targets_original, params, 5, mse_all)
-	
+		valid_data_rf = np.asarray(valid_data_rf)
+
+		rf_last.fit(training_data_rf, training_targets_rf)
+
+		predictions = rf_last.predict(valid_data_rf)
+
+		split_mse.append(mean_squared_error(targets_last_baseline[valid], predictions))
+		targets_last.append(targets_last_baseline[valid])
+		predictions_last.append(predictions)
+
+	plot_baseline_vs_true2(targets_last, predictions_last, split_mse)
+

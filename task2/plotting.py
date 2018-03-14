@@ -84,23 +84,168 @@ def plot_rnn_vs_true(targets, predictions, params, select_time):
 	plt.subplots_adjust(top=0.85)
 	fig5.savefig(str(select_time) +' true_rnn.png')
 
-def plot_baseline_vs_true(targets, baseline_predictions, mse):
+def plot_baseline_vs_true(targets, baseline_predictions, mse, fixed_obs):
 	fig6, ax = plt.subplots()
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
 	ax.set_ylabel('Baseline Values')
 	ax.set_xlabel('True Values')
 	ax.set_title('True vs Baseline MSE = ' + str(mse))
-	fig6.savefig('true_baseline.png')
+	fig6.savefig("./Plots/Train/Baselines2/Test " + str(fixed_obs)+ '/' + str(fixed_obs)+'_true_baseline2.png')
+	plt.close()
 
 def plot_baseline_vs_true2(targets, baseline_predictions, mse):
-	fig6, ax = plt.subplots()
+	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
 	ax.set_ylabel('Baseline Values')
 	ax.set_xlabel('True Values')
 	ax.set_title('True vs Baseline MSE = ' + str(mse))
-	fig6.savefig('2true_baseline.png')
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+	plt.close()"""
+	fig6, ax = plt.subplots(1, 3)
+	cnt = 0
+
+	ax[0].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[0].set_ylabel('Baseline Predicted Values')
+	ax[0].set_xlabel('True Values')
+	cnt+=1
+	ax[1].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[1].set_ylabel('Baseline Predicted Values')
+	ax[1].set_xlabel('True Values')
+	cnt+=1
+	ax[2].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[2].set_ylabel('Baseline Predicted Values')
+	ax[2].set_xlabel('True Values')
+
+	plt.suptitle('True vs Baseline', fontsize=20, fontweight="bold")
+	fig6.set_size_inches(18.5, 10.5, forward=True)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+
+def plot_task1_vs_true(targets, network_predictions, network_mse, baseline_predictions, baseline_mse):
+	"""	fig6, ax = plt.subplots(1, 3)
+	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
+	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
+	ax.set_ylabel('Baseline Values')
+	ax.set_xlabel('True Values')
+	ax.set_title('True vs Baseline MSE = ' + str(mse))
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+	plt.close()"""
+	fig6, ax = plt.subplots(2, 3)
+	cnt = 0
+
+	ax[0][0].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][0].set_ylabel('Network Predicted Values')
+	ax[0][0].set_xlabel('True Values')
+
+	ax[1][0].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][0].set_ylabel('Baseline Predicted Values')
+	ax[1][0].set_xlabel('True Values')
+
+	cnt+=1
+
+	ax[0][1].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][1].set_ylabel('Network Predicted Values')
+	ax[0][1].set_xlabel('True Values')
+
+	ax[1][1].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][1].set_ylabel('Baseline Predicted Values')
+	ax[1][1].set_xlabel('True Values')
+
+	cnt+=1
+
+	ax[0][2].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][2].set_ylabel('Network Predicted Values')
+	ax[0][2].set_xlabel('True Values')
+
+	ax[1][2].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][2].set_ylabel('Baseline Predicted Values')
+	ax[1][2].set_xlabel('True Values')
+
+	plt.suptitle('(Raw Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse)), fontsize=20, fontweight="bold")
+	fig6.set_size_inches(18.5, 10.5, forward=True)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig6.savefig("./Plots/Train/Task1/true_raw.png")
+
+
+def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_predictions, baseline_mse):
+	"""	fig6, ax = plt.subplots(1, 3)
+	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
+	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
+	ax.set_ylabel('Baseline Values')
+	ax.set_xlabel('True Values')
+	ax.set_title('True vs Baseline MSE = ' + str(mse))
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+	plt.close()"""
+	fig7, ax = plt.subplots(2, 3)
+	cnt = 0
+
+	ax[0][0].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][0].set_ylabel('Network Predicted Values')
+	ax[0][0].set_xlabel('True Values')
+
+	ax[1][0].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][0].set_ylabel('Baseline Predicted Values')
+	ax[1][0].set_xlabel('True Values')
+
+	cnt+=1
+
+	ax[0][1].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][1].set_ylabel('Network Predicted Values')
+	ax[0][1].set_xlabel('True Values')
+
+	ax[1][1].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][1].set_ylabel('Baseline Predicted Values')
+	ax[1][1].set_xlabel('True Values')
+
+	cnt+=1
+
+	ax[0][2].scatter(targets[cnt], network_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0][2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0][2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(network_mse[cnt]))
+	ax[0][2].set_ylabel('Network Predicted Values')
+	ax[0][2].set_xlabel('True Values')
+
+	ax[1][2].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1][2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1][2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(baseline_mse[cnt]))
+	ax[1][2].set_ylabel('Baseline Predicted Values')
+	ax[1][2].set_xlabel('True Values')
+
+	plt.suptitle('(Scaled Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse)), fontsize=20, fontweight="bold")
+	fig7.set_size_inches(18.5, 10.5, forward=True)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig7.savefig("./Plots/Train/Task1/true_scaled.png")
 
 #def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
 def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min,time):
@@ -171,6 +316,25 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		fig9.savefig('./Plots/Train ' + str(train_time) + '/Test ' + str(pred_time) + '/' + str(col)+ '_' + str(train_time) + '_' + str(pred_time)+ '.png')
 		plt.close()
 
+def plot_all_learning_curves_random(predictions, targets, params, pred_time, mses):
+	print("Begin Plotting")
+	for col in range(len(predictions)):
+		fig9, ax = plt.subplots()
+		ax.plot(predictions[col])
+		ax.plot(targets[col])
+		plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
+		ax.set_title('Predictions with pred time: '+ str(pred_time) + ' lr = ' + str(params[0]) 
+			 + ", alpha = " + str(params[1]) + ", MSE = "+str(mses), fontsize=20, fontweight="bold")
+		ax.set_ylabel('values')
+		ax.set_xlabel('epoch')
+		fig9.set_size_inches(18.5, 10.5, forward=True)
+		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		fig9.savefig('./Plots/Train/Random/Test ' + str(pred_time) + '/' + str(col)+ '_'  + str(pred_time)+ '.png')
+		plt.close()
+
+
 def plot_box_plots(predictions, params, train_time, pred_time):
 
 		figg, ax = plt.subplots()
@@ -184,6 +348,21 @@ def plot_box_plots(predictions, params, train_time, pred_time):
 		figg.set_size_inches(18.5, 10.5, forward=True)
 		plt.subplots_adjust(top=0.85)
 		figg.savefig('./Plots/Train ' + str(train_time) + '/MSE (Boxplot).png')
+		plt.close()
+
+def plot_box_plots_random(predictions, params, pred_time):
+
+		figg, ax = plt.subplots()
+		#for i in (predictions):
+		plt.boxplot([np.log(predictions[0]), np.log(predictions[1]), np.log(predictions[2]), np.log(predictions[3])], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+		ax.set_xticklabels(['5 epochs', '10 epochs', '20 epochs', '30 epochs'])
+		plt.xlabel("Test")
+		plt.ylabel("log(MSE)")
+		plt.title("log (MSE) Quartile", fontsize=20, fontweight="bold")
+		plt.tight_layout()
+		figg.set_size_inches(18.5, 10.5, forward=True)
+		plt.subplots_adjust(top=0.85)
+		figg.savefig('./Plots/Train/Random/MSE (Boxplot).png')
 		plt.close()
 
 def plot(dimension):

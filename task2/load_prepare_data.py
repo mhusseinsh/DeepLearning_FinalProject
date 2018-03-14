@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import KFold
 from keras.preprocessing.sequence import pad_sequences
 
 
@@ -51,6 +53,13 @@ def preprocess_data(X):
 	scaler = StandardScaler()
 	X_scaled = scaler.fit_transform(X)
 	return X_scaled
+
+def get_folds():
+	# randomness
+	seed = 7
+	np.random.seed(seed)
+	return KFold(n_splits = 3, shuffle = True, random_state = seed)
+
 
 def sort(X, X_scaled, y):
 	y_sorted = np.zeros((y.shape[0],1))
@@ -171,15 +180,35 @@ def data_randomize(X, y_original):
 	input_lengths = [i for i in range(4,20)]
 	random_lengths = np.random.choice(input_lengths, X.shape[0])
 	
-
+	x_copied = []
 	# randomly reproduced x
-	x_copied = np.repeat(X, random_lengths, axis=0)
+	for x,r  in zip(X,random_lengths):
+		x_r=[]
+		for i in range(r):
+			x_r.append(x)
+		x_r = [x.tolist() for x in x_r]
+
+		x_copied.append(x_r)
 
 	y_selected = y_original.tolist()
+
 	for row, t in zip(y_selected, random_lengths):
 		del row[t:]
+	
 	y_selected = np.array(y_selected)
+
 	return x_copied, y_selected,random_lengths
+
+def targets_randomize(y_original, random_lengths):
+	y_selected = y_original.tolist()
+
+	for row, t in zip(y_selected, random_lengths+1):
+		del row[t:]
+	
+	y_selected = np.array(y_selected)
+
+	return y_selected
+
 
 def pad_targets_to_20(y_selected):
 
@@ -191,22 +220,27 @@ def prepare_rnn_input_random(x_copied, y_selected):
 
 	#random input for rnn
 	
-	y_flat = np.zeros((x_copied.shape[0],1))
-	
-	i = 0
-	for y_s in y_selected:
-		for y in y_s:
-			y_flat[i] = y
-			i += 1
+	"""y_flat = np.zeros((x_copied.shape[0],1))
+				
+				i = 0
+				for y_s in y_selected:
+					for y in y_s:
+						y_flat[i] = y
+						i += 1"""
 
-	x_y_rnn = np.c_[x_copied,y_flat]
-
+	#x_y_rnn = np.c_[x_copied,y_flat]
+	x_y_rnn = []
+	for x,y in zip(x_copied,y_selected):
+		a=np.c_[x,y]
+		x_y_rnn.append(a)
 	#first_bucket = list(filter(lambda x: 5 <= len(x) <= 8 , x_y_rnn))
 	#first_bucket = pad_sequences(first_bucket, maxlen = 8, padding='post', dtype='float')
 
 	return x_y_rnn
 
-def prepare_rnn_targets_random(y_selected, length):
+def prepare_rnn_targets_random(y_selected, length, random_lengths):
+
+	
 
 	# rnn random targets
 	y_out = []
@@ -214,17 +248,18 @@ def prepare_rnn_targets_random(y_selected, length):
 	for y, i in zip(y_selected, range(y_selected.shape[0])):
 		y_out.append(np.delete(y, [0]))
 
-	y_flat = np.zeros((length,1))
-	k = 0
-	for y_s in y_out:
-		#y_s_list = y_s.tolist()
-		#for y in y_s_list[0]:
-		for y in y_s:
-			#print(k)
-			y_flat[k] = y
-			k += 1
+	"""y_flat = np.zeros((length,1))
+				k = 0
+				for y_s in y_out:
+					#y_s_list = y_s.tolist()
+					#for y in y_s_list[0]:
+					for y in y_s:
+						#print(k)
+						y_flat[k] = y
+						k += 1"""
 
-	return np.array(y_flat)
+	#return np.array(y_flat)
+	return np.array(y_out)
 
 
 def prepare_rnn_input_future(X, y_predicted):
@@ -243,16 +278,31 @@ def prepare_rnn_input_future(X, y_predicted):
 
 def prepare_last_baseline(y_original):
 
-	y_input = []
-	y_target = []
-	for i in range(36):
-		y_input.append(y_original.T[i:4+i])
+	target_input = []
+	target_target = []
 
-		y_target.append(y_original.T[4+i])
+	for y in y_original:
+		y_input = []
+		y_target = []
+
+		for i in range(36):
+			y_input.append(y[i:4+i])
+			y_target.append(y[4+i])
+		y_i = [y_ii.tolist() for y_ii in y_input]
+		y_t = [y_tt.tolist() for y_tt in y_target]
+
+		target_input.append(y_i)
+		target_target.append(y_t)
 
 
-	return np.array(y_input).reshape(36*y_original.shape[0],4), np.array(y_target).reshape(36*y_original.shape[0],)
+	"""for i in range(36):
+					y_input.append(y_original.T[i:4+i])
+			
+					y_target.append(y_original.T[4+i])"""
 
+
+	return np.array(target_input).reshape(36*y_original.shape[0],4), np.array(target_target).reshape(36*y_original.shape[0],)
+	
 
 
 

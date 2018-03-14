@@ -45,10 +45,10 @@ def rnn(num_epochs, learning_rate, alpha):
 	model.add(LSTM(64, return_sequences = True))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
 
 	model.add(Dense(1))
 
@@ -70,10 +70,10 @@ def rnn_stateful(num_epochs, learning_rate, alpha):
 	model.add(LSTM(64, return_sequences = False, stateful=True))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = 'zeros', activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
 
 	model.add(Dense(1))
 
@@ -87,32 +87,3 @@ def rnn_stateful(num_epochs, learning_rate, alpha):
 
 	return model
 
-def predict(X, raw):
-	X = x_copy(np.array(X), time_steps)
-	if (raw):
-		json_file = open('model_raw.json', 'r')
-		model = json_file.read()
-		json_file.close()
-		ml = model_from_json(model)
-		ml.load_weights("model_raw.h5")
-		print("Raw Model Loaded")
-		y_net = []
-		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, time_steps, 5)
-			y_pred = ml.predict(x_test)
-			y_net.append(y_pred[0][-1])
-		return y_net
-
-	else:
-		json_file = open('model_pre.json', 'r')
-		model = json_file.read()
-		json_file.close()
-		ml = model_from_json(model)
-		ml.load_weights("model_pre.h5")
-		print("Pre Model Loaded")
-		y_net = []
-		for x_test, y_test in zip(X, y):
-			x_test = x_test.reshape(-1, time_steps, 5)
-			y_pred = ml.predict(x_test)
-			y_net.append(y_pred[0][-1])
-		return y_net
