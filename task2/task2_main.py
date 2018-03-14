@@ -11,8 +11,8 @@ import keras
 import numpy as np
 import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import cross_val_score
@@ -47,21 +47,12 @@ from plotting import *
 if __name__ == "__main__":
 
 
-	decaying_lrs = [[1e-1, 1e-4],[1e-1, 1e-5],[1e-1, 1e-6],[1e-1, 1e-7],[1e-2, 1e-5],[1e-2, 1e-6],[1e-2, 1e-7],[1e-3, 1e-5],[1e-3, 1e-6],[1e-3, 1e-7],
-			[1e-4, 1e-6],[1e-4, 1e-7],[1e-4, 1e-8],[1e-5, 1e-7]]
-	batches = [8, 16, 32]
-	alphas = [1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-	max_depth = [2, 4, 8, 16, 32]
-	n_estimators = [4, 8, 16, 32]
-	bootstrap = [True, False]
-	min_samples_leaf = [1, 2, 4, 8]
-	models = 30
-	select_time = 5
-	time_steps = [select_time]
+	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
+	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
 	pred_time = [5, 10, 20, 30]
 	train_time = [5, 10, 20]
-	models = 1
-	num_epochs = 1
+	models = 3
+	num_epochs = 1000
 
 
 	# randomness
@@ -90,6 +81,7 @@ if __name__ == "__main__":
 		lr_used = []
 		alpha_used = []
 		for model in range(models):
+			print("Training " + str(l) + " epochs, Model " + str(model+1))
 			# randomize hyperparams
 			idx = np.random.randint(0, len(decaying_lrs))
 			learningrate = decaying_lrs[idx]
@@ -97,8 +89,9 @@ if __name__ == "__main__":
 			lr_used.append(learningrate)
 			alpha_used.append(alpha)
 			# get data
+			
+			splits = 1
 			model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
-
 			for train, valid in kfold.split(rnn_input, rnn_targets):
 				split_loss = []
 				split_score = []
@@ -107,21 +100,24 @@ if __name__ == "__main__":
 				all_split_score = []
 				all_split_mse = []
 				all_split_loss=[]
-
+				
+				print("Split " + str(splits))
+				splits+=1
 				for x, y in zip(rnn_input[train],rnn_targets[train]):
-					split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = num_epochs).history['loss'])
+					split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = num_epochs, verbose=0).history['loss'])
 
 				all_split_loss.append(np.mean(split_loss))
 
 				for x, y in zip(rnn_input[valid],rnn_targets[valid]):
-					split_score.append(model.evaluate(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1)) * 100)
+					split_score.append(model.evaluate(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), verbose=0) * 100)
 					preds = model.predict(x.reshape(-1, l-1, 1 + data.shape[1]))
 				
 					split_mse.append(mean_squared_error(preds[0], y))
 
 				all_split_score.append(np.mean(split_score))
 				all_split_mse.append(np.mean(split_mse))
-				
+				print("MSE for this split = " + str(np.mean(split_mse)))
+
 
 			overall_score = np.mean(all_split_score)
 			overall_mse.append(np.mean(all_split_mse))
@@ -138,6 +134,7 @@ if __name__ == "__main__":
 		# Prediction using best model
 		overall_mse_test = []
 		for s in pred_time:
+			print("Start prediction for train " + str(l) + " and test " + str(s))
 			if not os.path.exists("./Plots/Train " + str(l) + "/Test " + str(s)):
 				os.makedirs("./Plots/Train " + str(l) + "/Test " + str(s))
 			targets_selected = y_select(targets_original, s)
