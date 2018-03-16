@@ -25,23 +25,25 @@ from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.models import Sequential
 from keras.models import model_from_json
-from keras.layers import Dense, Activation
+from keras.layers import *
 from keras.utils import np_utils
 from keras import regularizers
 from keras.optimizers import Adam
 from keras.regularizers import l1,l2
+from keras.initializers import Constant
 
 def mlp(num_epochs, learning_rate, alpha):
 	model = Sequential()
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
-		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
-		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
+		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
+	#model.add(GaussianNoise(0.02))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
-		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
-		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
-
+		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
+	#model.add(GaussianNoise(0.02))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
 	#initial_lr = learning_rate[0]

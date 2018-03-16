@@ -47,13 +47,15 @@ from plotting import *
 if __name__ == "__main__":
 
 
-	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
+	#decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
+	decaying_lrs = [1e-3, 1e-4, 1e-5, 1e-3, 1e-6] 
 	#alphas = [1e-7, 1e-6, 1e-5, 1e-4]
 	alphas = [0]
+	batch_size = [8,16,32,64,128,265]
 	max_depth = [2, 4, 8, 16, 32]
 	n_estimators = [4, 8, 16, 32]
 	min_samples_leaf = [1, 2, 4, 8]
-	models = 5
+	models = 10
 	num_epochs = 1000
 
 
@@ -76,6 +78,7 @@ if __name__ == "__main__":
 
 	lr_used = []
 	alpha_used = []
+	batch_used = []
 	n_estimator_used = []
 	min_leaf_used = []
 	depth_used = []
@@ -85,7 +88,9 @@ if __name__ == "__main__":
 		idx = np.random.randint(0, len(decaying_lrs))
 		learningrate = decaying_lrs[idx]
 		alpha = np.random.choice(alphas)
+		batch = np.random.choice(batch_size)
 		lr_used.append(learningrate)
+		batch_used.append(batch)
 		alpha_used.append(alpha)
 
 		n_estimator = np.random.choice(n_estimators)
@@ -119,6 +124,7 @@ if __name__ == "__main__":
 
 		model = mlp(num_epochs = num_epochs, learning_rate = learningrate, alpha = alpha)
 		s_model = mlp(num_epochs = num_epochs, learning_rate = learningrate, alpha = alpha)
+
 		b_model = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
 		b_s_model = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
 
@@ -128,7 +134,7 @@ if __name__ == "__main__":
 			split_score = []
 			split_mse = []
 
-			split_loss = model.fit(data[train], targets[train], epochs = num_epochs, batch_size = 28).history['loss']
+			split_loss = model.fit(data[train], targets[train], epochs = num_epochs, batch_size = batch, verbose = 0).history['loss']
 
 			all_split_loss.append(np.mean(split_loss))
 
@@ -148,7 +154,7 @@ if __name__ == "__main__":
 			s_split_mse = []
 
 			
-			s_split_loss = s_model.fit(data_scaled[train], targets[train], epochs = num_epochs, batch_size = 28).history['loss']
+			s_split_loss = s_model.fit(data_scaled[train], targets[train], epochs = num_epochs, batch_size = batch, verbose = 0).history['loss']
 
 			s_all_split_loss.append(np.mean(split_loss))
 
@@ -244,10 +250,12 @@ if __name__ == "__main__":
 
 	best = np.argmin(overall_mse)
 	best_lr = lr_used[best]
+	best_batch = batch_used[best]
 	best_alpha = alpha_used[best]
 
 	s_best = np.argmin(s_overall_mse)
 	s_best_lr = lr_used[s_best]
+	s_best_batch = batch_used[s_best]
 	s_best_alpha = alpha_used[s_best]
 
 	b_best = np.argmin(b_overall_mse)
@@ -294,7 +302,7 @@ if __name__ == "__main__":
 		split_score = []
 		split_mse = []
 
-		split_loss = model.fit(data[train], targets[train], epochs = num_epochs, batch_size = 28).history['loss']
+		split_loss = model.fit(data[train], targets[train], epochs = num_epochs, batch_size = best_batch, verbose = 0).history['loss']
 
 		all_split_loss.append(np.mean(split_loss))
 
@@ -314,7 +322,7 @@ if __name__ == "__main__":
 		s_split_score = []
 		s_split_mse = []
 
-		s_split_loss = s_model.fit(data_scaled[train], targets[train], epochs = num_epochs, batch_size = 28).history['loss']
+		s_split_loss = s_model.fit(data_scaled[train], targets[train], epochs = num_epochs, batch_size = s_best_batch, verbose = 0).history['loss']
 
 		s_all_split_loss.append(np.mean(split_loss))
 
@@ -396,6 +404,12 @@ if __name__ == "__main__":
 
 		targets_last.append(targets[valid])
 
-	plot_task1_vs_true(targets_last, all_preds, all_split_mse, b_all_preds, b_all_split_mse)
-	plot_task1_vs_true2(targets_last, s_all_preds, s_all_split_mse, b_s_all_preds, b_s_all_split_mse)
+	params = [best_lr,best_alpha,best_batch]
+	s_params = [s_best_lr,s_best_alpha,s_best_batch]
+
+	b_params = [b_depth, b_n_estimator, b_min_leaf]
+	b_s_params = [b_s_depth, b_s_n_estimator, b_s_min_leaf]
+
+	plot_task1_vs_true(targets_last, all_preds, all_split_mse, b_all_preds, b_all_split_mse, params, b_params)
+	plot_task1_vs_true2(targets_last, s_all_preds, s_all_split_mse, b_s_all_preds, b_s_all_split_mse, s_params, b_s_params)
 
