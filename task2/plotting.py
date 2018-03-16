@@ -304,7 +304,7 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		fig9, ax = plt.subplots()
 		ax.plot(predictions[col])
 		ax.plot(targets[col])
-		plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
+		#plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
 		ax.set_title('Predictions with input length '+ str(train_time) + ' and pred time: '+ str(pred_time) + ' lr = ' + str(params[0]) 
 			 + ", alpha = " + str(params[1]) + ", MSE = "+str(mses)+'_split_'+ str(split), fontsize=20, fontweight="bold")
 		ax.set_ylabel('values')
@@ -313,7 +313,7 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig9.savefig('./Plots/Train/New ' + str(train_time) + 
+		fig9.savefig('./Plots/Train/New/' + str(train_time) + '/Split '+str(split)+
 			'/Test ' + str(pred_time) + '/' + str(col)+ '_' + str(train_time) + '_' + str(pred_time)+'_split_'+ str(split)+ '.png')
 		plt.close()
 
@@ -323,48 +323,49 @@ def plot_all_learning_curves_random(predictions, targets, params, pred_time, mse
 		fig9, ax = plt.subplots()
 		ax.plot(predictions[col])
 		ax.plot(targets[col])
-		plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
+		#plt.axvline(x=pred_time-1, linestyle='dashed', linewidth=2.0, color = 'black')
 		ax.set_title('Predictions with pred time: '+ str(pred_time) + ' lr = ' + str(params[0]) 
-			 + ", alpha = " + str(params[1]) + ", MSE = "+str(mses), fontsize=20, fontweight="bold")
+			 + ", alpha = " + str(params[1]) + ", MSE = "+str(mses)+'_split_'+ str(split), fontsize=20, fontweight="bold")
 		ax.set_ylabel('values')
 		ax.set_xlabel('epoch')
 		fig9.set_size_inches(18.5, 10.5, forward=True)
 		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig9.savefig('./Plots/Train/Random/New/Test ' + str(pred_time) + '/' + str(col)+ '_'  + str(pred_time)+'_split_'+ str(split)+ '.png')
+		fig9.savefig('./Plots/Train/Random/New/Split '+str(split)+'/Test ' + str(pred_time) + '/' + str(col)+ '_'  + str(pred_time)+'_split_'+ str(split)+ '.png')
 		plt.close()
 
 
-def plot_box_plots(predictions, params, train_time, pred_time, split):
+def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split):
+		for i, j, k, test in zip(split1, split2, split3, pred_time):
+			figg, ax = plt.subplots()
+			#for i in (predictions):
+			plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+			ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+			plt.xlabel("Test")
+			plt.ylabel("log(MSE)")
+			plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
+			plt.tight_layout()
+			figg.set_size_inches(18.5, 10.5, forward=True)
+			plt.subplots_adjust(top=0.85)
+			figg.savefig('./Plots/Train/New/' + str(train_time) + '/MSE (Boxplot)_test_'+ str(test)+'.png')
+			plt.close()
 
-		figg, ax = plt.subplots()
-		#for i in (predictions):
-		plt.boxplot([np.log(predictions[0]), np.log(predictions[1]), np.log(predictions[2]), np.log(predictions[3])], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
-		ax.set_xticklabels(['5 epochs', '10 epochs', '20 epochs', '30 epochs'])
-		plt.xlabel("Test")
-		plt.ylabel("log(MSE)")
-		plt.title("log (MSE) Quartile", fontsize=20, fontweight="bold")
-		plt.tight_layout()
-		figg.set_size_inches(18.5, 10.5, forward=True)
-		plt.subplots_adjust(top=0.85)
-		figg.savefig('./Plots/Train/New ' + str(train_time) + '/MSE (Boxplot)_split_'+ str(split)+'.png')
-		plt.close()
+def plot_box_plots_random(split1, split2, split3, params, pred_time, split):
 
-def plot_box_plots_random(predictions, params, pred_time,split):
-
-		figg, ax = plt.subplots()
-		#for i in (predictions):
-		plt.boxplot([np.log(predictions[0]), np.log(predictions[1]), np.log(predictions[2]), np.log(predictions[3])], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
-		ax.set_xticklabels(['5 epochs', '10 epochs', '20 epochs', '30 epochs'])
-		plt.xlabel("Test")
-		plt.ylabel("log(MSE)")
-		plt.title("log (MSE) Quartile", fontsize=20, fontweight="bold")
-		plt.tight_layout()
-		figg.set_size_inches(18.5, 10.5, forward=True)
-		plt.subplots_adjust(top=0.85)
-		figg.savefig('./Plots/Train/Random/New/MSE (Boxplot)_split_'+ str(split)+'.png')
-		plt.close()
+		for i, j, k, test in zip(split1, split2, split3, pred_time):
+			figg, ax = plt.subplots()
+			#for i in (predictions):
+			plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+			ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+			plt.xlabel("Test")
+			plt.ylabel("log(MSE)")
+			plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
+			plt.tight_layout()
+			figg.set_size_inches(18.5, 10.5, forward=True)
+			plt.subplots_adjust(top=0.85)
+			figg.savefig('./Plots/Train/Random/New/MSE (Boxplot)_test_'+ str(test)+'.png')
+			plt.close()
 
 def plot(dimension):
 		# Loss (raw data)

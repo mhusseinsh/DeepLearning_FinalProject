@@ -49,10 +49,12 @@ if __name__ == "__main__":
 
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	pred_time = [5, 10, 20, 30]
-	train_time = [5, 10, 20]
+	#pred_time = [5, 10, 20, 30]
+	#train_time = [5, 10, 20]
+	pred_time = [5]
+	train_time = [5]
 	models = 1
-	num_epochs = 1000
+	num_epochs = 100
 
 
 	# randomness
@@ -61,8 +63,8 @@ if __name__ == "__main__":
 	kfold = KFold(n_splits = 3, shuffle = True, random_state = seed)
 
 	for l in train_time:
-		if not os.path.exists("./Plots/Train/New " + str(l)):
-			os.makedirs("./Plots/Train/New " + str(l))
+		if not os.path.exists("./Plots/Train/New/" + str(l)):
+			os.makedirs("./Plots/Train/New/" + str(l))
 		overall_mse = []
 		data, targets, targets_original = prepare_data()
 		data_scaled = preprocess_data(data)
@@ -91,7 +93,12 @@ if __name__ == "__main__":
 			# get data
 			
 			split = 1
+			overall_mse_split1 = []
+			overall_mse_split2 = []
+			overall_mse_split3 = []
 			for train, valid in kfold.split(rnn_input, rnn_targets):
+				if not os.path.exists("./Plots/Train/New/" + str(l) + '/Split '+ str(split)):
+					os.makedirs("./Plots/Train/New/" + str(l) + '/Split '+ str(split))
 				model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 				split_loss = []
 				split_score = []
@@ -131,13 +138,17 @@ if __name__ == "__main__":
 
 				new_model = rnn_stateful(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 				new_model.set_weights(model.get_weights())
+
+				for x in rnn_input[train]:
+					preds = new_model.predict(x.reshape(-1, l-1, 1 + data.shape[1]))
 				
 				# Prediction using best model
 				overall_mse_test = []
 				for s in pred_time:
 					print("Start prediction for train " + str(l) + " and test " + str(s))
-					if not os.path.exists("./Plots/Train/New " + str(l) + "/Test " + str(s)):
-						os.makedirs("./Plots/Train/New " + str(l) + "/Test " + str(s))
+					if not os.path.exists("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s)):
+						os.makedirs("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s))
+						
 					targets_selected_prediction = y_select(targets_original, s)
 
 					# given time steps, y is prepared 
@@ -159,8 +170,9 @@ if __name__ == "__main__":
 						preds = []
 						
 
-						for x in sample_x:
-							prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
+						#for x in sample_x:
+						#	prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
+						prediction = new_model.predict(sample_x.reshape(-1, s-1, 1 + data.shape[1]), batch_size = 1)
 
 
 						for i in range(s,41):
@@ -179,25 +191,71 @@ if __name__ == "__main__":
 					
 					params = [learningrate, alpha]
 
-					thefile = open(os.path.join('./Plots/Train/New ' + str(l) + '/', 'Predictions - Test_' + str(s) + '_split_'+ str(split)+ '.txt'), 'w')
+					thefile = open(os.path.join('./Plots/Train/New/' + str(l) + '/', 'Predictions - Test_' + str(s) + '_split_'+ str(split)+ '.txt'), 'w')
+					
 					for item in predictions:
 					  thefile.write("%s\n" % item)
 
 					mse_test = []
-					for x, y in zip(predictions[:], targets_original[:]):
-						mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1]))
 
-					mse_test = np.asarray(mse_test)
-					overall_mse_test.append(mse_test)
-					thefile = open(os.path.join('./Plots/Train/New ' + str(l) + '/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+ '.txt'), 'w')
+					"""for x, y in zip(predictions[:], targets_original[valid]):
+						mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1])"""
+					for x, y in zip (predictions, targets_original[valid]):
+						mse_test.append(mean_squared_error(x, y))
+					
+					if (split ==1):
+						if (s == 5):
+							mse_test_5 = np.asarray(mse_test)
+							overall_mse_split1.append(mse_test_5)
+						if (s ==10):
+							mse_test_10 = np.asarray(mse_test)
+							overall_mse_split1.append(mse_test_10)
+						if (s ==20):
+							mse_test_20 = np.asarray(mse_test)
+							overall_mse_split1.append(mse_test_20)
+						if (s ==30):
+							mse_test_30 = np.asarray(mse_test)
+							overall_mse_split1.append(mse_test_30)
+					if (split== 2):
+						if (s ==5):
+							mse_test_5 = np.asarray(mse_test)
+							overall_mse_split2.append(mse_test_5)
+						if (s ==10):
+							mse_test_10 = np.asarray(mse_test)
+							overall_mse_split2.append(mse_test_10)
+						if (s== 20):
+							mse_test_20 = np.asarray(mse_test)
+							overall_mse_split2.append(mse_test_20)
+						if (s ==30):
+							mse_test_30 = np.asarray(mse_test)
+							overall_mse_split2.append(mse_test_30)
+					if (split ==3):
+						if (s ==5):
+							mse_test_5 = np.asarray(mse_test)
+							overall_mse_split3.append(mse_test_5)
+						if (s== 10):
+							mse_test_10 = np.asarray(mse_test)
+							overall_mse_split3.append(mse_test_10)
+						if (s ==20):
+							mse_test_20 = np.asarray(mse_test)
+							overall_mse_split3.append(mse_test_20)
+						if (s== 30):
+							mse_test_30 = np.asarray(mse_test)
+							overall_mse_split3.append(mse_test_30)
+
+
+					thefile = open(os.path.join('./Plots/Train/New/' + str(l) + '/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+ '.txt'), 'w')
 					for item in mse_test:
 					  thefile.write("%s\n" % item)
 					
 					plot_all_learning_curves(predictions, targets_original, params, l, s, split_mse[split-1],split)
-				plot_box_plots(np.asarray(overall_mse_test), params, l, s,split)
+				#plot_box_plots(np.asarray(overall_mse_test), params, l, s,split)
 				
 
-				thefile = open(os.path.join('./Plots/', 'targets_split'+ str(split) + '.txt'), 'w')
+				thefile = open(os.path.join('./Plots/Train/New/' + str(l), 'targets_split'+ str(split) + '.txt'), 'w')
 				for item in targets_original:
 				  thefile.write("%s\n" % item)
 				split+=1
+		
+			plot_box_plots(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split)
+

@@ -52,7 +52,7 @@ if __name__ == "__main__":
 	models = 1
 	pred_time = [5,10, 20, 30]
 	train_time = [5,10,20]
-	num_epochs = 1000
+	num_epochs = 1
 
 	# randomness
 	kfold = get_folds()
@@ -88,7 +88,16 @@ if __name__ == "__main__":
 		
 
 		split = 1
+
+		overall_mse_split1 = []
+		overall_mse_split2 = []
+		overall_mse_split3 = []
+
 		for train, valid in kfold.split(rnn_input, rnn_targets):
+
+			if not os.path.exists("./Plots/Train/Random/New/Split "+ str(split)):
+					os.makedirs("./Plots/Train/Random/New/Split "+ str(split))
+
 			model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 			split_loss = []
 			split_score = []
@@ -128,10 +137,17 @@ if __name__ == "__main__":
 			new_model = rnn_stateful(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 			new_model.set_weights(model.get_weights())
 
+
+			for t_index in train:
+				preds = model.predict(rnn_input[t_index].reshape(-1, random_lengths[t_index], 1 + data.shape[1]))
+
 			overall_mse_test = []
 			for s in pred_time:
-				if not os.path.exists("./Plots/Train/Random/New/Test " + str(s)):
-						os.makedirs("./Plots/Train/Random/New/Test " + str(s))
+				print("Start prediction for and test " + str(s))
+				if not os.path.exists("./Plots/Train/Random/New/Split "+str(split)+ "/Test " + str(s)):
+					os.makedirs("./Plots/Train/Random/New/Split "+str(split)+ "/Test " + str(s))
+
+
 				targets_selected_prediction = y_select(targets_original, s)
 
 				# given time steps, y is prepared 
@@ -152,8 +168,10 @@ if __name__ == "__main__":
 					prediction = 0
 					preds = []
 
-					for x in sample_x:
-						prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
+					"""for x in sample_x:
+						prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)"""
+
+					prediction = new_model.predict(sample_x.reshape(-1, s-1, 1 + data.shape[1]), batch_size = 1)
 
 					for i in range(s,41):
 						x = sample_x[0][0:-1]
@@ -173,22 +191,64 @@ if __name__ == "__main__":
 				  thefile.write("%s\n" % item)
 
 				mse_test = []
-				for x, y in zip(predictions[:], targets_original[:]):
-					mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1]))
+				for x, y in zip (predictions, targets_original[valid]):
+					mse_test.append(mean_squared_error(x, y))
 
-				mse_test = np.asarray(mse_test)
-				overall_mse_test.append(mse_test)
+
+				if (split ==1):
+					if (s == 5):
+						mse_test_5 = np.asarray(mse_test)
+						overall_mse_split1.append(mse_test_5)
+					if (s ==10):
+						mse_test_10 = np.asarray(mse_test)
+						overall_mse_split1.append(mse_test_10)
+					if (s ==20):
+						mse_test_20 = np.asarray(mse_test)
+						overall_mse_split1.append(mse_test_20)
+					if (s ==30):
+						mse_test_30 = np.asarray(mse_test)
+						overall_mse_split1.append(mse_test_30)
+				if (split== 2):
+					if (s ==5):
+						mse_test_5 = np.asarray(mse_test)
+						overall_mse_split2.append(mse_test_5)
+					if (s ==10):
+						mse_test_10 = np.asarray(mse_test)
+						overall_mse_split2.append(mse_test_10)
+					if (s== 20):
+						mse_test_20 = np.asarray(mse_test)
+						overall_mse_split2.append(mse_test_20)
+					if (s ==30):
+						mse_test_30 = np.asarray(mse_test)
+						overall_mse_split2.append(mse_test_30)
+				if (split ==3):
+					if (s ==5):
+						mse_test_5 = np.asarray(mse_test)
+						overall_mse_split3.append(mse_test_5)
+					if (s== 10):
+						mse_test_10 = np.asarray(mse_test)
+						overall_mse_split3.append(mse_test_10)
+					if (s ==20):
+						mse_test_20 = np.asarray(mse_test)
+						overall_mse_split3.append(mse_test_20)
+					if (s== 30):
+						mse_test_30 = np.asarray(mse_test)
+						overall_mse_split3.append(mse_test_30)
+
 				thefile = open(os.path.join('./Plots/Train/Random/New/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+  '.txt'), 'w')
 				for item in mse_test:
 				  thefile.write("%s\n" % item)
 
 				plot_all_learning_curves_random(predictions, targets_original, params, s, split_mse[split-1],split)
-			plot_box_plots_random(np.asarray(overall_mse_test), params, s,split)
+			#plot_box_plots_random(np.asarray(overall_mse_test), params, s,split)
 
 			thefile = open(os.path.join('./Plots/', 'targets_random_split_' + str(split)+  '.txt'), 'w')
 			for item in targets_original:
 			  thefile.write("%s\n" % item)
 			split+=1
+
+		plot_box_plots_random(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, pred_time ,split)
+
 
 
 

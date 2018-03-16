@@ -42,12 +42,15 @@ def rnn(num_epochs, learning_rate, alpha):
 	model = Sequential()
 	model.add(LSTM(64, return_sequences = True, input_shape = (None, 6), 
 		kernel_initializer = RandomUniform(0.01, 0.05),kernel_regularizer=l2(alpha)))
+
 	model.add(GaussianNoise(0.02))
 	model.add(LSTM(64, return_sequences = True, 
 		kernel_initializer = RandomUniform(0.01, 0.05),kernel_regularizer=l2(alpha)))
+
 	model.add(GaussianNoise(0.02))
 	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05), 
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
+	
 	model.add(GaussianNoise(0.02))
 	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05), 
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
