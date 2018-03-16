@@ -48,16 +48,16 @@ from plotting import *
 if __name__ == "__main__":
 
 
-	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
-	#decaying_lrs = [1e-3, 1e-4, 1e-5, 1e-3, 1e-6] 
-	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	#alphas = [0]
+	#decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
+	decaying_lrs = [1e-3, 1e-4, 1e-5, 1e-3, 1e-6] 
+	#alphas = [1e-7, 1e-6, 1e-5, 1e-4]
+	alphas = [0]
 	batch_size = [8,16,32,64,128,265]
 	max_depth = [2, 4, 8, 16, 32]
 	n_estimators = [4, 8, 16, 32]
 	min_samples_leaf = [1, 2, 4, 8]
-	models = 3
-	num_epochs = 1
+	models = 10
+	num_epochs = 1000
 
 
 	# randomness
@@ -480,10 +480,6 @@ if __name__ == "__main__":
 
 	plot_task1_vs_true(targets_last, all_preds, all_split_mse, b_all_preds, b_all_split_mse, params, b_params)
 	plot_task1_vs_true2(targets_last, s_all_preds, s_all_split_mse, b_s_all_preds, b_s_all_split_mse, s_params, b_s_params)
-
-
-
-	
 
 	plot_best_and_worst_boxes(np.asarray(box_3),np.asarray(box_4) , np.asarray(box_1), np.asarray(box_2))
 

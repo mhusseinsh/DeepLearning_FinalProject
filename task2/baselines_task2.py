@@ -238,7 +238,6 @@ if __name__ == "__main__":
 		rf_last.fit(training_data_rf, training_targets_rf)
 
 		predictions = rf_last.predict(valid_data_rf)
-		print(predictions.shape)
 
 		split_mse.append(mean_squared_error(targets_last_baseline[valid], predictions))
 		targets_last.append(targets_last_baseline[valid])

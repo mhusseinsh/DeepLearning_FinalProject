@@ -404,6 +404,88 @@ def plot_network_vs_true_scatter(pred_split1, pred_split2, pred_split3, target_s
 		plt.close()
 		cnt += 1
 
+def plot_network_vs_true_scatter_random(pred_split1, pred_split2, pred_split3, target_split1, target_split2, target_split3,  overall_mse_split1, overall_mse_split2, overall_mse_split3, params, pred_time ,split):
+	
+	cnt = 0
+	for test in zip(pred_time):
+		fig6, ax = plt.subplots(1, 3)
+
+		ax[0].scatter(target_split1[cnt], pred_split1[cnt], edgecolors=(0, 0, 0))
+		ax[0].plot([min(target_split1[cnt]), max(target_split1[cnt])], [min(target_split1[cnt]), max(target_split1[cnt])], 'k--', lw=4)
+		ax[0].set_title('Split 1, MSE = ' + str(np.mean(overall_mse_split1[cnt])))
+		ax[0].set_ylabel('Network Predicted Values')
+		ax[0].set_xlabel('True Values')
+
+		ax[1].scatter(target_split2[cnt], pred_split2[cnt], edgecolors=(0, 0, 0))
+		ax[1].plot([min(target_split2[cnt]), max(target_split2[cnt])], [min(target_split2[cnt]), max(target_split2[cnt])], 'k--', lw=4)
+		ax[1].set_title('Split 2, MSE = ' + str(np.mean(overall_mse_split2[cnt])))
+		ax[1].set_ylabel('Network Predicted Values')
+		ax[1].set_xlabel('True Values')
+
+		ax[2].scatter(target_split3[cnt], pred_split3[cnt], edgecolors=(0, 0, 0))
+		ax[2].plot([min(target_split3[cnt]), max(target_split3[cnt])], [min(target_split3[cnt]), max(target_split3[cnt])], 'k--', lw=4)
+		ax[2].set_title('Split 3, MSE = ' + str(np.mean(overall_mse_split3[cnt])))
+		ax[2].set_ylabel('Network Predicted Values')
+		ax[2].set_xlabel('True Values')
+
+		plt.suptitle('True vs Network', fontsize=20, fontweight="bold")
+		fig6.set_size_inches(18.5, 10.5, forward=True)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		fig6.savefig('./Plots/Train/Random/New/trueVSnetwork_test_'+ str(test) + '.png')
+		plt.close()
+		cnt += 1
+
+def plot_box_plots_all(model1, model2, train_time):
+
+	fig6, ax = plt.subplots(2, 1)
+	cnt = 0
+	mse1 = []
+	mse1.append(np.mean(model1[0]))
+	mse1.append(np.mean(model1[1]))
+	mse1.append(np.mean(model1[2]))
+
+	mse_1 = np.mean(mse1)
+
+
+	mse2 = []
+	mse2.append(np.mean(model2[0]))
+	mse2.append(np.mean(model2[1]))
+	mse2.append(np.mean(model2[2]))
+
+	mse_2 = np.mean(mse2)
+
+	m11 = np.asarray(model1[0]).reshape(model1[0].shape[1],)
+	m12 = np.asarray(model1[1]).reshape(model1[1].shape[1],)
+	m13 = np.asarray(model1[2]).reshape(model1[2].shape[1],)
+
+
+
+	m21 = np.asarray(model2[0]).reshape(model2[0].shape[1],)
+	m22 = np.asarray(model2[1]).reshape(model2[1].shape[1],)
+	m23 = np.asarray(model2[2]).reshape(model2[2].shape[1],)
+
+	print(m11.shape)
+	print(type(m11))
+	ax[0].boxplot([np.log(m11), np.log(m12), np.log(m13)], showmeans=True, meanline=False)
+	ax[0].set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+	ax[0].set_xlabel("Test")
+	ax[0].set_ylabel("log(MSE)")
+	ax[0].set_title("log (MSE) Quartile for Model 1 , MSE = " + str(mse_1), fontsize=20, fontweight="bold")
+
+	ax[1].boxplot([np.log(m21), np.log(m22), np.log(m23)], showmeans=True, meanline=False)
+	ax[1].set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+	ax[1].set_xlabel("Test")
+	ax[1].set_ylabel("log(MSE)")
+	ax[1].set_title("log (MSE) Quartile for Model 2 , MSE = " + str(mse_2), fontsize=20, fontweight="bold")
+
+	plt.tight_layout()
+	fig6.set_size_inches(18.5, 10.5, forward=True)
+	plt.subplots_adjust(top=0.85)
+
+	fig6.savefig("./Plots/Train/" + str(train_time)  + "/boxplot_models.png")
+	plt.close()
+
 def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split, model):
 		for i, j, k, test in zip(split1, split2, split3, pred_time):
 			figg, ax = plt.subplots()

@@ -49,12 +49,12 @@ if __name__ == "__main__":
 
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	#pred_time = [5, 10, 20, 30]
-	pred_time = [5]
-	#train_time = [5, 10, 20]
-	train_time = [5]
+	pred_time = [5, 10, 20, 30]
+	#pred_time = [5]
+	train_time = [5, 10, 20]
+	#train_time = [5]
 	models = 2
-	num_epochs = 1
+	num_epochs = 1000
 
 
 	# randomness
@@ -82,6 +82,8 @@ if __name__ == "__main__":
 		best_weights = []
 		lr_used = []
 		alpha_used = []
+		model1_mse = []
+		model2_mse = []
 		for m in range(models):
 			if not os.path.exists("./Plots/Train/" + str(l) + '/Model ' + str(m)):
 				os.makedirs("./Plots/Train/" + str(l) + "/Model " + str(m))
@@ -295,4 +297,12 @@ if __name__ == "__main__":
 
 			plot_network_vs_true_scatter(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split, m)
 			plot_box_plots(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split, m)
-
+			if (m == 0):
+				model1_mse.append(np.asarray(overall_mse_split1))
+				model1_mse.append(np.asarray(overall_mse_split2))
+				model1_mse.append(np.asarray(overall_mse_split3))
+			if (m == 1):
+				model2_mse.append(np.asarray(overall_mse_split1))
+				model2_mse.append(np.asarray(overall_mse_split2))
+				model2_mse.append(np.asarray(overall_mse_split3))
+		plot_box_plots_all(model1_mse, model2_mse, l)

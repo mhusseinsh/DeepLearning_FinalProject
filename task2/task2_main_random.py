@@ -50,7 +50,7 @@ if __name__ == "__main__":
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
 	models = 1
-	pred_time = [5,10, 20, 30]
+	pred_time = [5,10,20,30]
 	train_time = [5,10,20]
 	num_epochs = 1000
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
 			for v_index in valid:
 				split_score.append(model.evaluate(rnn_input[v_index].reshape(-1, random_lengths[v_index], 1 + data.shape[1]), 
-					rnn_targets[v_index].reshape(-1, random_lengths[v_index],1)) * 100)
+					rnn_targets[v_index].reshape(-1, random_lengths[v_index],1), verbose=0) * 100)
 				preds = model.predict(rnn_input[v_index].reshape(-1, random_lengths[v_index], 1 + data.shape[1]).reshape(-1, random_lengths[v_index], 1 + data.shape[1]))
 			
 				split_mse.append(mean_squared_error(preds[0], rnn_targets[v_index]))
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 				mse_test = []
 				splits_predictions = []
 				for x, y in zip (predictions, targets[valid]):
-					mse_test.append(mean_squared_error(x[:-1], y))
+					mse_test.append(mean_squared_error([x[-1]], y))
 					splits_predictions.append(x[-1])
 
 				if (split ==1):
@@ -279,5 +279,5 @@ if __name__ == "__main__":
 			  thefile.write("%s\n" % item)
 			split+=1
 		print("Boxplot starts")
-		plot_network_vs_true_scatter_random(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split)
+		plot_network_vs_true_scatter_random(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, pred_time ,split)
 		plot_box_plots_random(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, pred_time ,split)
