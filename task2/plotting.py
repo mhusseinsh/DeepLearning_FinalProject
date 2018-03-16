@@ -247,6 +247,42 @@ def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_pred
 	plt.subplots_adjust(top=0.85)
 	fig7.savefig("./Plots/Train/Task1/true_scaled.png")
 
+def plot_baseline_vs_true1(targets, baseline_predictions, mse, fixed_obs):
+	"""	fig6, ax = plt.subplots(1, 3)
+	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
+	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
+	ax.set_ylabel('Baseline Values')
+	ax.set_xlabel('True Values')
+	ax.set_title('True vs Baseline MSE = ' + str(mse))
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+	plt.close()"""
+	fig6, ax = plt.subplots(1, 3)
+	cnt = 0
+
+	ax[0].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[0].set_ylabel('Baseline Predicted Values')
+	ax[0].set_xlabel('True Values')
+	cnt+=1
+	ax[1].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[1].set_ylabel('Baseline Predicted Values')
+	ax[1].set_xlabel('True Values')
+	cnt+=1
+	ax[2].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[2].set_ylabel('Baseline Predicted Values')
+	ax[2].set_xlabel('True Values')
+
+	plt.suptitle('True vs Baseline', fontsize=20, fontweight="bold")
+	fig6.set_size_inches(18.5, 10.5, forward=True)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig6.savefig("./Plots/Train/Baselines2/Test " + str(fixed_obs)+ '/' + str(fixed_obs)+'_true_baseline1.png')
+
 #def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
 def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min,time):
 	#transposed = np.array(all_predictions).T
