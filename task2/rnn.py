@@ -29,26 +29,29 @@ from keras.wrappers.scikit_learn import KerasRegressor
 from keras.callbacks import LearningRateScheduler, EarlyStopping
 from keras.models import Sequential
 from keras.models import model_from_json
-from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Dropout, Flatten, LSTM
+from keras.layers import *
 from keras.utils import np_utils
 from keras import regularizers
 from keras.optimizers import SGD
 from keras.optimizers import Adam
-from keras.initializers import Constant
+from keras.initializers import *
 from keras.regularizers import l1,l2
 
 def rnn(num_epochs, learning_rate, alpha):
 
 	model = Sequential()
-	model.add(LSTM(64, return_sequences = True, input_shape = (None, 6)))
-
-	model.add(LSTM(64, return_sequences = True))
-
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(LSTM(64, return_sequences = True, input_shape = (None, 6), 
+		kernel_initializer = RandomUniform(0.01, 0.05),kernel_regularizer=l2(alpha)))
+	model.add(GaussianNoise(0.02))
+	model.add(LSTM(64, return_sequences = True, 
+		kernel_initializer = RandomUniform(0.01, 0.05),kernel_regularizer=l2(alpha)))
+	model.add(GaussianNoise(0.02))
+	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05), 
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
-
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(GaussianNoise(0.02))
+	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05), 
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
+	#model.add(GaussianNoise(0.02))
 
 	model.add(Dense(1))
 
@@ -65,14 +68,16 @@ def rnn(num_epochs, learning_rate, alpha):
 def rnn_stateful(num_epochs, learning_rate, alpha):
 
 	model = Sequential()
-	model.add(LSTM(64, return_sequences = True, batch_input_shape = (1, None, 6), stateful=True))
-
-	model.add(LSTM(64, return_sequences = False, stateful=True))
-
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(LSTM(64, return_sequences = True, batch_input_shape = (1, None, 6), stateful=True, 
+		kernel_initializer = RandomUniform(0.01, 0.05), kernel_regularizer=l2(alpha)))
+	model.add(GaussianNoise(0.02))
+	model.add(LSTM(64, return_sequences = False, stateful=True,
+		kernel_initializer = RandomUniform(0.01, 0.05), kernel_regularizer=l2(alpha)))
+	model.add(GaussianNoise(0.02))
+	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05),
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
-
-	model.add(Dense(64, kernel_initializer = 'random_uniform', 
+	model.add(GaussianNoise(0.02))
+	model.add(Dense(64, kernel_initializer = RandomUniform(0.01, 0.05), 
 		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
 
 	model.add(Dense(1))

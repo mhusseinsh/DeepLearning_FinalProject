@@ -61,8 +61,8 @@ if __name__ == "__main__":
 	kfold = KFold(n_splits = 3, shuffle = True, random_state = seed)
 
 	for l in train_time:
-		if not os.path.exists("./Plots/Train " + str(l)):
-			os.makedirs("./Plots/Train " + str(l))
+		if not os.path.exists("./Plots/Train/New " + str(l)):
+			os.makedirs("./Plots/Train/New " + str(l))
 		overall_mse = []
 		data, targets, targets_original = prepare_data()
 		data_scaled = preprocess_data(data)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 			alpha_used.append(alpha)
 			# get data
 			
-			splits = 1
+			split = 1
 			for train, valid in kfold.split(rnn_input, rnn_targets):
 				model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 				split_loss = []
@@ -101,8 +101,8 @@ if __name__ == "__main__":
 				all_split_mse = []
 				all_split_loss=[]
 				
-				print("Split " + str(splits))
-				splits+=1
+				print("Split " + str(split))
+				
 				for i in range (num_epochs):
 					for x, y in zip(rnn_input[train],rnn_targets[train]):
 						split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = 1, verbose=1).history['loss'])
@@ -115,80 +115,89 @@ if __name__ == "__main__":
 				
 					split_mse.append(mean_squared_error(preds[0], y))
 
-				all_split_score.append(np.mean(split_score))
-				all_split_mse.append(np.mean(split_mse))
+				"""all_split_score.append(np.mean(split_score))
+					all_split_mse.append(np.mean(split_mse))"""
 				print("MSE for this split = " + str(np.mean(split_mse)))
 
 
-			overall_score = np.mean(all_split_score)
-			overall_mse.append(np.mean(all_split_mse))
-			overall_loss = np.mean(all_split_loss)
-			best_weights.append(model.get_weights())
+				"""overall_score = np.mean(all_split_score)
+					overall_mse.append(np.mean(all_split_mse))
+					overall_loss = np.mean(all_split_loss)
+					best_weights.append(model.get_weights())
+	
+					best = np.argmin(overall_mse)
+					#best_lr = lr_used[best]
+					#best_alpha = alpha_used[best]"""
 
-		best = np.argmin(overall_mse)
-		best_lr = lr_used[best]
-		best_alpha = alpha_used[best]
-
-		new_model = rnn_stateful(learning_rate=best_lr, num_epochs = num_epochs, alpha = best_alpha)
-		new_model.set_weights(best_weights[best])
-		
-		# Prediction using best model
-		overall_mse_test = []
-		for s in pred_time:
-			print("Start prediction for train " + str(l) + " and test " + str(s))
-			if not os.path.exists("./Plots/Train " + str(l) + "/Test " + str(s)):
-				os.makedirs("./Plots/Train " + str(l) + "/Test " + str(s))
-			targets_selected = y_select(targets_original, s)
-
-			# given time steps, y is prepared 
-			targets_selected_for_input = y_select_targets(targets_selected, s)
+				new_model = rnn_stateful(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
+				new_model.set_weights(model.get_weights())
 				
-			# prepare data for cv
-			rnn_input = prepare_rnn_input(data_scaled, targets_selected_for_input, s).reshape(-1, s-1, 1 + data.shape[1])
-			
+				# Prediction using best model
+				overall_mse_test = []
+				for s in pred_time:
+					print("Start prediction for train " + str(l) + " and test " + str(s))
+					if not os.path.exists("./Plots/Train/New " + str(l) + "/Test " + str(s)):
+						os.makedirs("./Plots/Train/New " + str(l) + "/Test " + str(s))
+					targets_selected_prediction = y_select(targets_original, s)
 
-			all_preds = []
-
-			for _, valid in kfold.split(rnn_input, rnn_targets):
-
-				for sample_x in rnn_input[valid]:
-
-					new_model.reset_states()
-					prediction = 0
-					preds = []
-
-					for x in sample_x:
-						prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
-
-					for i in range(s,41):
-						x = sample_x[0][0:-1]
-						x_pred = np.c_[np.array([x]),prediction[0]]
-						prediction = new_model.predict(x_pred.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
-
-						preds.append(prediction[0])
-					all_preds.append(np.array(preds).reshape(41-s,))
+					# given time steps, y is prepared 
+					targets_selected_for_input_prediction = y_select_targets(targets_selected_prediction, s)
+						
+					# prepare data for cv
+					rnn_input_prediction = prepare_rnn_input(data_scaled, targets_selected_for_input, s).reshape(-1, s-1, 1 + data.shape[1])
 					
-			predictions = np.c_[targets_selected_for_input.reshape(265,s-1), all_preds]
+
+					all_preds = []
+					targets_of_split = []
+
+					#for _, valid in kfold.split(rnn_input, rnn_targets):
+
+					for sample_x, sample_y in zip(rnn_input_prediction[valid], targets_selected_for_input_prediction[valid]):
+
+						new_model.reset_states()
+						prediction = 0
+						preds = []
+						
+
+						for x in sample_x:
+							prediction = new_model.predict(x.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
+
+
+						for i in range(s,41):
+							x = sample_x[0][0:-1]
 			
-			params = [best_lr, best_alpha]
+							x_pred = np.c_[np.array([x]),prediction[0]]
+					
+							prediction = new_model.predict(x_pred.reshape(-1, 1, 1 + data.shape[1]), batch_size = 1)
+						
+							preds.append(prediction[0])
+							
+						all_preds.append(np.array(preds).reshape(41-s,))
+						targets_of_split.append(sample_y)
 
-			thefile = open(os.path.join('./Plots/Train ' + str(l) + '/', 'Predictions - Test_' + str(s) + '.txt'), 'w')
-			for item in predictions:
-			  thefile.write("%s\n" % item)
+					predictions = np.c_[np.array(targets_of_split).reshape(len(valid),s-1), all_preds]
+					
+					params = [learningrate, alpha]
 
-			mse_test = []
-			for x, y in zip(predictions[:], targets_original[:]):
-				mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1]))
+					thefile = open(os.path.join('./Plots/Train/New ' + str(l) + '/', 'Predictions - Test_' + str(s) + '_split_'+ str(split)+ '.txt'), 'w')
+					for item in predictions:
+					  thefile.write("%s\n" % item)
 
-			mse_test = np.asarray(mse_test)
-			overall_mse_test.append(mse_test)
-			thefile = open(os.path.join('./Plots/Train ' + str(l) + '/', 'MSE - Test_' + str(s) + '.txt'), 'w')
-			for item in mse_test:
-			  thefile.write("%s\n" % item)
-			
-			plot_all_learning_curves(predictions, targets_original, params, l, s, overall_mse[best])
-		plot_box_plots(np.asarray(overall_mse_test), params, l, s)
+					mse_test = []
+					for x, y in zip(predictions[:], targets_original[:]):
+						mse_test.append(mean_squared_error(x[s-1:-1], y[s-1:-1]))
 
-	thefile = open(os.path.join('./Plots/', 'targets' + '.txt'), 'w')
-	for item in targets_original:
-	  thefile.write("%s\n" % item)
+					mse_test = np.asarray(mse_test)
+					overall_mse_test.append(mse_test)
+					thefile = open(os.path.join('./Plots/Train/New ' + str(l) + '/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+ '.txt'), 'w')
+					for item in mse_test:
+					  thefile.write("%s\n" % item)
+					
+					plot_all_learning_curves(predictions, targets_original, params, l, s, split_mse[split-1],split)
+				plot_box_plots(np.asarray(overall_mse_test), params, l, s,split)
+				
+
+				thefile = open(os.path.join('./Plots/', 'targets_split'+ str(split) + '.txt'), 'w')
+				for item in targets_original:
+				  thefile.write("%s\n" % item)
+				split+=1
