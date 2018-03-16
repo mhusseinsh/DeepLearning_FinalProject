@@ -334,7 +334,7 @@ def plot_learning_curves_random(max_pred, max_t, min_pred, min_t, params, select
 	plt.subplots_adjust(top=0.85)
 	fig8.savefig('Randomized_'+str(select_time) + '_best_and_worst_predictions_true_curves.png')
 
-def plot_all_learning_curves(predictions, targets, params, train_time, pred_time, mses,split):
+def plot_all_learning_curves(predictions, targets, params, train_time, pred_time, mses,split, model):
 	print("Begin Plotting")
 	for col in range(len(predictions)):
 		fig9, ax = plt.subplots()
@@ -349,7 +349,7 @@ def plot_all_learning_curves(predictions, targets, params, train_time, pred_time
 		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig9.savefig('./Plots/Train/New/' + str(train_time) + '/Split '+str(split)+
+		fig9.savefig("./Plots/Train/" + str(train_time) + "/Model " + str(model) + '/Split '+str(split)+
 			'/Test ' + str(pred_time) + '/' + str(col)+ '_' + str(train_time) + '_' + str(pred_time)+'_split_'+ str(split)+ '.png')
 		plt.close()
 
@@ -368,11 +368,11 @@ def plot_all_learning_curves_random(predictions, targets, params, pred_time, mse
 		plt.legend(['prediction', 'true'], loc='best', fancybox=True, framealpha=0.5)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig9.savefig('./Plots/Train/Random/New/Split '+str(split)+'/Test ' + str(pred_time) + '/' + str(col)+ '_'  + str(pred_time)+'_split_'+ str(split)+ '.png')
+		fig9.savefig('./Plots/Train/Random/New/Split '+str(split) +'/Test ' + str(pred_time) + '/' + str(col)+ '_'  + str(pred_time)+'_split_'+ str(split)+ '.png')
 		plt.close()
 
 
-def plot_network_vs_true_scatter(pred_split1, pred_split2, pred_split3, target_split1, target_split2, target_split3,  overall_mse_split1, overall_mse_split2, overall_mse_split3, params, l, pred_time ,split):
+def plot_network_vs_true_scatter(pred_split1, pred_split2, pred_split3, target_split1, target_split2, target_split3,  overall_mse_split1, overall_mse_split2, overall_mse_split3, params, l, pred_time ,split, model):
 	
 	cnt = 0
 	for test in zip(pred_time):
@@ -400,11 +400,11 @@ def plot_network_vs_true_scatter(pred_split1, pred_split2, pred_split3, target_s
 		fig6.set_size_inches(18.5, 10.5, forward=True)
 		plt.tight_layout()
 		plt.subplots_adjust(top=0.85)
-		fig6.savefig('./Plots/Train/New/' + str(l) + '/trueVSnetwork_test_'+ str(test)+'.png')
+		fig6.savefig("./Plots/Train/" + str(l) + "/Model " + str(model) + '/trueVSnetwork_test_'+ str(test)+'.png')
 		plt.close()
 		cnt += 1
 
-def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split):
+def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split, model):
 		for i, j, k, test in zip(split1, split2, split3, pred_time):
 			figg, ax = plt.subplots()
 			#for i in (predictions):
@@ -416,7 +416,7 @@ def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split)
 			plt.tight_layout()
 			figg.set_size_inches(18.5, 10.5, forward=True)
 			plt.subplots_adjust(top=0.85)
-			figg.savefig('./Plots/Train/New/' + str(train_time) + '/MSE (Boxplot)_test_'+ str(test)+'.png')
+			figg.savefig("./Plots/Train/" + str(train_time) + "/Model " + str(model) + '/MSE (Boxplot)_test_'+ str(test)+'.png')
 			plt.close()
 
 def plot_box_plots_random(split1, split2, split3, params, pred_time, split):

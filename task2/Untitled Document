@@ -1,0 +1,31 @@
+def plot_network_vs_true_scatter(pred_split1, pred_split2, pred_split3, target_split1, target_split2, target_split3,  overall_mse_split1, overall_mse_split2, overall_mse_split3, params, l, pred_time ,split):
+	
+	cnt = 0
+	for test in zip(pred_time):
+		fig6, ax = plt.subplots(1, 3)
+
+		ax[0].scatter(target_split1[cnt], pred_split1[cnt], edgecolors=(0, 0, 0))
+		ax[0].plot([min(target_split1[cnt]), max(target_split1[cnt])], [min(target_split1[cnt]), max(target_split1[cnt])], 'k--', lw=4)
+		ax[0].set_title('Split 1, MSE = ' + str(np.mean(overall_mse_split1[cnt])))
+		ax[0].set_ylabel('Network Predicted Values')
+		ax[0].set_xlabel('True Values')
+
+		ax[1].scatter(target_split2[cnt], pred_split2[cnt], edgecolors=(0, 0, 0))
+		ax[1].plot([min(target_split2[cnt]), max(target_split2[cnt])], [min(target_split2[cnt]), max(target_split2[cnt])], 'k--', lw=4)
+		ax[1].set_title('Split 2, MSE = ' + str(np.mean(overall_mse_split2[cnt])))
+		ax[1].set_ylabel('Network Predicted Values')
+		ax[1].set_xlabel('True Values')
+
+		ax[2].scatter(target_split3[cnt], pred_split3[cnt], edgecolors=(0, 0, 0))
+		ax[2].plot([min(target_split3[cnt]), max(target_split3[cnt])], [min(target_split3[cnt]), max(target_split3[cnt])], 'k--', lw=4)
+		ax[2].set_title('Split 3, MSE = ' + str(np.mean(overall_mse_split3[cnt])))
+		ax[2].set_ylabel('Network Predicted Values')
+		ax[2].set_xlabel('True Values')
+
+		plt.suptitle('True vs Network', fontsize=20, fontweight="bold")
+		fig6.set_size_inches(18.5, 10.5, forward=True)
+		plt.tight_layout()
+		plt.subplots_adjust(top=0.85)
+		fig6.savefig('./Plots/Train/New/' + str(l) + '/trueVSnetwork_test_'+ str(test)+'.png')
+		plt.close()
+		cnt += 1

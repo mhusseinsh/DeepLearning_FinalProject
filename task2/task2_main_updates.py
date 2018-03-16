@@ -49,12 +49,12 @@ if __name__ == "__main__":
 
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	pred_time = [5, 10, 20, 30]
-	#pred_time = [5]
-	train_time = [5, 10, 20]
-	#train_time = [5]
-	models = 1
-	num_epochs = 1000
+	#pred_time = [5, 10, 20, 30]
+	pred_time = [5]
+	#train_time = [5, 10, 20]
+	train_time = [5]
+	models = 2
+	num_epochs = 1
 
 
 	# randomness
@@ -63,8 +63,8 @@ if __name__ == "__main__":
 	kfold = KFold(n_splits = 3, shuffle = True, random_state = seed)
 
 	for l in train_time:
-		if not os.path.exists("./Plots/Train/New/" + str(l)):
-			os.makedirs("./Plots/Train/New/" + str(l))
+		if not os.path.exists("./Plots/Train/" + str(l)):
+			os.makedirs("./Plots/Train/" + str(l))
 		overall_mse = []
 		data, targets, targets_original = prepare_data()
 		data_scaled = preprocess_data(data)
@@ -82,8 +82,10 @@ if __name__ == "__main__":
 		best_weights = []
 		lr_used = []
 		alpha_used = []
-		for model in range(models):
-			print("Training " + str(l) + " epochs, Model " + str(model+1))
+		for m in range(models):
+			if not os.path.exists("./Plots/Train/" + str(l) + '/Model ' + str(m)):
+				os.makedirs("./Plots/Train/" + str(l) + "/Model " + str(m))
+			print("Training " + str(l) + " epochs, Model " + str(m+1))
 			# randomize hyperparams
 			idx = np.random.randint(0, len(decaying_lrs))
 			learningrate = decaying_lrs[idx]
@@ -105,8 +107,8 @@ if __name__ == "__main__":
 			targets_split3 = []
 
 			for train, valid in kfold.split(rnn_input, rnn_targets):
-				if not os.path.exists("./Plots/Train/New/" + str(l) + '/Split '+ str(split)):
-					os.makedirs("./Plots/Train/New/" + str(l) + '/Split '+ str(split))
+				if not os.path.exists("./Plots/Train/" + str(l) + "/Model " + str(m) + '/Split '+ str(split)):
+					os.makedirs("./Plots/Train/" + str(l) + "/Model " + str(m) + '/Split '+ str(split))
 				model = rnn(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 				split_loss = []
 				split_score = []
@@ -154,8 +156,8 @@ if __name__ == "__main__":
 				overall_mse_test = []
 				for s in pred_time:
 					print("Start prediction for train " + str(l) + " and test " + str(s))
-					if not os.path.exists("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s)):
-						os.makedirs("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s))
+					if not os.path.exists("./Plots/Train/" + str(l) + "/Model " + str(m) + '/Split '+ str(split) + '/Test ' + str(s)):
+						os.makedirs("./Plots/Train/" + str(l) + "/Model " + str(m) + '/Split '+ str(split) + '/Test ' + str(s))
 
 					targets_selected_prediction = y_select(targets_original, s)
 
@@ -199,7 +201,7 @@ if __name__ == "__main__":
 					
 					params = [learningrate, alpha]
 
-					thefile = open(os.path.join('./Plots/Train/New/' + str(l) + '/', 'Predictions - Test_' + str(s) + '_split_'+ str(split)+ '.txt'), 'w')
+					thefile = open(os.path.join("./Plots/Train/" + str(l) + "/Model " + str(m) + '/', 'Predictions - Test_' + str(s) + '_split_'+ str(split)+ '.txt'), 'w')
 					
 					for item in predictions:
 					  thefile.write("%s\n" % item)
@@ -278,19 +280,19 @@ if __name__ == "__main__":
 							targets_split3.append(targets[valid])
 
 
-					thefile = open(os.path.join('./Plots/Train/New/' + str(l) + '/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+ '.txt'), 'w')
+					thefile = open(os.path.join("./Plots/Train/" + str(l) + "/Model " + str(m) + '/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+ '.txt'), 'w')
 					for item in mse_test:
 					  thefile.write("%s\n" % item)
 					
-					plot_all_learning_curves(predictions, targets_original, params, l, s, split_mse[split-1],split)
+					#plot_all_learning_curves(predictions, targets_original, params, l, s, split_mse[split-1], split, m)
 				#plot_box_plots(np.asarray(overall_mse_test), params, l, s,split)
 				
 
-				thefile = open(os.path.join('./Plots/Train/New/' + str(l), 'targets_split'+ str(split) + '.txt'), 'w')
+				thefile = open(os.path.join("./Plots/Train/" + str(l) + "/Model " + str(m), 'targets_split'+ str(split) + '.txt'), 'w')
 				for item in targets_original:
 				  thefile.write("%s\n" % item)
 				split+=1
 
-			plot_network_vs_true_scatter(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split)
-			plot_box_plots(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split)
+			plot_network_vs_true_scatter(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split, m)
+			plot_box_plots(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split, m)
 
