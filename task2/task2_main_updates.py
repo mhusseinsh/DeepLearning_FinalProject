@@ -51,10 +51,10 @@ if __name__ == "__main__":
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
 	pred_time = [5, 10, 20, 30]
 	#pred_time = [5]
-	#train_time = [5, 10, 20]
-	train_time = [5]
+	train_time = [5, 10, 20]
+	#train_time = [5]
 	models = 1
-	num_epochs = 1
+	num_epochs = 1000
 
 
 	# randomness
