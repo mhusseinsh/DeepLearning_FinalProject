@@ -130,7 +130,7 @@ def plot_baseline_vs_true2(targets, baseline_predictions, mse):
 	plt.subplots_adjust(top=0.85)
 	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
 
-def plot_task1_vs_true(targets, network_predictions, network_mse, baseline_predictions, baseline_mse):
+def plot_task1_vs_true(targets, network_predictions, network_mse, baseline_predictions, baseline_mse, n_params, b_params):
 	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
@@ -182,14 +182,16 @@ def plot_task1_vs_true(targets, network_predictions, network_mse, baseline_predi
 	ax[1][2].set_ylabel('Baseline Predicted Values')
 	ax[1][2].set_xlabel('True Values')
 
-	plt.suptitle('(Raw Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse)), fontsize=20, fontweight="bold")
+	plt.suptitle('(Raw Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse)) 
+		+'\n for network: learning rate = ' + str(n_params[0]) + ', alpha = '+ str(n_params[1]) +', batch size = ' + str(n_params[2])
+		+'\n for baseline: depth = '+str(b_params[0])+', # estimators = '+ str(b_params[1])+', min leaf = '+str(b_params[2])	, fontsize=20, fontweight="bold")
 	fig6.set_size_inches(18.5, 10.5, forward=True)
 	plt.tight_layout()
 	plt.subplots_adjust(top=0.85)
 	fig6.savefig("./Plots/Train/Task1/true_raw.png")
 
 
-def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_predictions, baseline_mse):
+def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_predictions, baseline_mse, n_params, b_params):
 	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
@@ -241,11 +243,14 @@ def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_pred
 	ax[1][2].set_ylabel('Baseline Predicted Values')
 	ax[1][2].set_xlabel('True Values')
 
-	plt.suptitle('(Scaled Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse)), fontsize=20, fontweight="bold")
+	plt.suptitle('(Scaled Data) True vs Predicted, mean Network MSE = ' + str(np.mean(network_mse)) + ', mean Baseline MSE = ' + str(np.mean(baseline_mse))
+		+'\n for network: learning rate = ' + str(n_params[0])+ ', alpha = '+ str(n_params[1])+', batch size = ' + str(n_params[2])
+		+'\n for baseline: depth = '+str(b_params[0])+', # estimators = '+ str(b_params[1])+', min leaf = '+str(b_params[2]), fontsize=20, fontweight="bold")
 	fig7.set_size_inches(18.5, 10.5, forward=True)
 	plt.tight_layout()
 	plt.subplots_adjust(top=0.85)
 	fig7.savefig("./Plots/Train/Task1/true_scaled.png")
+
 
 #def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
 def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min,time):
