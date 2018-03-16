@@ -110,7 +110,7 @@ if __name__ == "__main__":
 				
 				for i in range (num_epochs):
 					for x, y in zip(rnn_input[train],rnn_targets[train]):
-						split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = 1, verbose=1).history['loss'])
+						split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = 1, verbose=0).history['loss'])
 
 				all_split_loss.append(np.mean(split_loss))
 
