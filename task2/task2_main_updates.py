@@ -49,12 +49,10 @@ if __name__ == "__main__":
 
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	#pred_time = [5, 10, 20, 30]
-	#train_time = [5, 10, 20]
-	pred_time = [5]
-	train_time = [5]
+	pred_time = [5, 10, 20, 30]
+	train_time = [5, 10, 20]
 	models = 1
-	num_epochs = 100
+	num_epochs = 1000
 
 
 	# randomness
@@ -148,7 +146,7 @@ if __name__ == "__main__":
 					print("Start prediction for train " + str(l) + " and test " + str(s))
 					if not os.path.exists("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s)):
 						os.makedirs("./Plots/Train/New/" + str(l) +'/Split '+str(split)+ "/Test " + str(s))
-						
+
 					targets_selected_prediction = y_select(targets_original, s)
 
 					# given time steps, y is prepared 

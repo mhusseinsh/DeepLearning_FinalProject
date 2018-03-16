@@ -52,7 +52,7 @@ if __name__ == "__main__":
 	models = 1
 	pred_time = [5,10, 20, 30]
 	train_time = [5,10,20]
-	num_epochs = 1
+	num_epochs = 1000
 
 	# randomness
 	kfold = get_folds()
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 			for i in range(num_epochs):
 				for t_index in train:
 					split_loss.append(model.fit(rnn_input[t_index].reshape(-1, random_lengths[t_index], 1 + data.shape[1]),
-						rnn_targets[t_index].reshape(-1, random_lengths[t_index],1), epochs = 1).history['loss'])
+						rnn_targets[t_index].reshape(-1, random_lengths[t_index],1), epochs = 1, verbose = 0).history['loss'])
 
 			all_split_loss.append(np.mean(split_loss))
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 				best_lr = lr_used[best]
 				best_alpha = alpha_used[best]"""
 
-
+			print("MSE for this split = " + str(np.mean(split_mse)))
 			new_model = rnn_stateful(learning_rate=learningrate, num_epochs = num_epochs, alpha = alpha)
 			new_model.set_weights(model.get_weights())
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
 			overall_mse_test = []
 			for s in pred_time:
-				print("Start prediction for and test " + str(s))
+				print("Start prediction for " + str(s))
 				if not os.path.exists("./Plots/Train/Random/New/Split "+str(split)+ "/Test " + str(s)):
 					os.makedirs("./Plots/Train/Random/New/Split "+str(split)+ "/Test " + str(s))
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 			for item in targets_original:
 			  thefile.write("%s\n" % item)
 			split+=1
-
+		print("Boxplot starts")
 		plot_box_plots_random(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, pred_time ,split)
 
 
