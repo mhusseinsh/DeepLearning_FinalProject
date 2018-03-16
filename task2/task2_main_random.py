@@ -93,6 +93,13 @@ if __name__ == "__main__":
 		overall_mse_split2 = []
 		overall_mse_split3 = []
 
+		predictions_split1 = []
+		targets_split1 = []
+		predictions_split2 = []
+		targets_split2 = []
+		predictions_split3 = []
+		targets_split3 = []
+
 		for train, valid in kfold.split(rnn_input, rnn_targets):
 
 			if not os.path.exists("./Plots/Train/Random/New/Split "+ str(split)):
@@ -191,51 +198,74 @@ if __name__ == "__main__":
 				  thefile.write("%s\n" % item)
 
 				mse_test = []
+				splits_predictions = []
 				for x, y in zip (predictions, targets[valid]):
 					mse_test.append(mean_squared_error(x[:-1], y))
-
-
-
+					splits_predictions.append(x[-1])
 
 				if (split ==1):
 					if (s == 5):
 						mse_test_5 = np.asarray(mse_test)
 						overall_mse_split1.append(mse_test_5)
+						predictions_split1.append(splits_predictions)
+						targets_split1.append(targets[valid])
 					if (s ==10):
 						mse_test_10 = np.asarray(mse_test)
 						overall_mse_split1.append(mse_test_10)
+						predictions_split1.append(splits_predictions)
+						targets_split1.append(targets[valid])
 					if (s ==20):
 						mse_test_20 = np.asarray(mse_test)
 						overall_mse_split1.append(mse_test_20)
+						predictions_split1.append(splits_predictions)
+						targets_split1.append(targets[valid])
 					if (s ==30):
 						mse_test_30 = np.asarray(mse_test)
 						overall_mse_split1.append(mse_test_30)
+						predictions_split1.append(splits_predictions)
+						targets_split1.append(targets[valid])
 				if (split== 2):
 					if (s ==5):
 						mse_test_5 = np.asarray(mse_test)
 						overall_mse_split2.append(mse_test_5)
+						predictions_split2.append(splits_predictions)
+						targets_split2.append(targets[valid])
 					if (s ==10):
 						mse_test_10 = np.asarray(mse_test)
 						overall_mse_split2.append(mse_test_10)
+						predictions_split2.append(splits_predictions)
+						targets_split2.append(targets[valid])
 					if (s== 20):
 						mse_test_20 = np.asarray(mse_test)
 						overall_mse_split2.append(mse_test_20)
+						predictions_split2.append(splits_predictions)
+						targets_split2.append(targets[valid])
 					if (s ==30):
 						mse_test_30 = np.asarray(mse_test)
 						overall_mse_split2.append(mse_test_30)
+						predictions_split2.append(splits_predictions)
+						targets_split2.append(targets[valid])
 				if (split ==3):
 					if (s ==5):
 						mse_test_5 = np.asarray(mse_test)
 						overall_mse_split3.append(mse_test_5)
+						predictions_split3.append(splits_predictions)
+						targets_split3.append(targets[valid])
 					if (s== 10):
 						mse_test_10 = np.asarray(mse_test)
 						overall_mse_split3.append(mse_test_10)
+						predictions_split3.append(splits_predictions)
+						targets_split3.append(targets[valid])
 					if (s ==20):
 						mse_test_20 = np.asarray(mse_test)
 						overall_mse_split3.append(mse_test_20)
+						predictions_split3.append(splits_predictions)
+						targets_split3.append(targets[valid])
 					if (s== 30):
 						mse_test_30 = np.asarray(mse_test)
 						overall_mse_split3.append(mse_test_30)
+						predictions_split3.append(splits_predictions)
+						targets_split3.append(targets[valid])
 
 				thefile = open(os.path.join('./Plots/Train/Random/New/', 'MSE - Test_' + str(s) +'_split_'+ str(split)+  '.txt'), 'w')
 				for item in mse_test:
@@ -249,9 +279,5 @@ if __name__ == "__main__":
 			  thefile.write("%s\n" % item)
 			split+=1
 		print("Boxplot starts")
+		plot_network_vs_true_scatter_random(predictions_split1, predictions_split2, predictions_split3, targets_split1, targets_split2, targets_split3, np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, l, pred_time ,split)
 		plot_box_plots_random(np.asarray(overall_mse_split1), np.asarray(overall_mse_split2), np.asarray(overall_mse_split3), params, pred_time ,split)
-
-
-
-
-
