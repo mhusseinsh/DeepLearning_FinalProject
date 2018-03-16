@@ -49,12 +49,10 @@ if __name__ == "__main__":
 
 	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
 	alphas = [1e-7, 1e-6, 1e-5, 1e-4]
-	#pred_time = [5, 10, 20, 30]
-	#train_time = [5, 10, 20]
-	pred_time = [5]
-	train_time = [5]
+	pred_time = [5, 10, 20, 30]
+	train_time = [5, 10, 20]
 	models = 1
-	num_epochs = 100
+	num_epochs = 1000
 
 
 	# randomness
@@ -112,7 +110,7 @@ if __name__ == "__main__":
 				
 				for i in range (num_epochs):
 					for x, y in zip(rnn_input[train],rnn_targets[train]):
-						split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = 1, verbose=1).history['loss'])
+						split_loss.append(model.fit(x.reshape(-1, l-1, 1 + data.shape[1]), y.reshape(-1, l-1,1), epochs = 1, verbose=0).history['loss'])
 
 				all_split_loss.append(np.mean(split_loss))
 
