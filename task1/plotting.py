@@ -130,6 +130,42 @@ def plot_baseline_vs_true2(targets, baseline_predictions, mse):
 	plt.subplots_adjust(top=0.85)
 	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
 
+def plot_baseline_vs_true1(targets, baseline_predictions, mse, fixed_obs):
+	"""	fig6, ax = plt.subplots(1, 3)
+	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
+	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
+	ax.set_ylabel('Baseline Values')
+	ax.set_xlabel('True Values')
+	ax.set_title('True vs Baseline MSE = ' + str(mse))
+	fig6.savefig("./Plots/Train/Baselines2/Last/true_baseline2.png")
+	plt.close()"""
+	fig6, ax = plt.subplots(1, 3)
+	cnt = 0
+
+	ax[0].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[0].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[0].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[0].set_ylabel('Baseline Predicted Values')
+	ax[0].set_xlabel('True Values')
+	cnt+=1
+	ax[1].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[1].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[1].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[1].set_ylabel('Baseline Predicted Values')
+	ax[1].set_xlabel('True Values')
+	cnt+=1
+	ax[2].scatter(targets[cnt], baseline_predictions[cnt], edgecolors=(0, 0, 0))
+	ax[2].plot([min(targets[cnt]), max(targets[cnt])], [min(targets[cnt]), max(targets[cnt])], 'k--', lw=4)
+	ax[2].set_title('Split ' + str(cnt+1) + ', MSE = ' + str(mse[cnt]))
+	ax[2].set_ylabel('Baseline Predicted Values')
+	ax[2].set_xlabel('True Values')
+
+	plt.suptitle('True vs Baseline', fontsize=20, fontweight="bold")
+	fig6.set_size_inches(18.5, 10.5, forward=True)
+	plt.tight_layout()
+	plt.subplots_adjust(top=0.85)
+	fig6.savefig("./Plots/Train/Baselines2/Test " + str(fixed_obs)+ '/' + str(fixed_obs)+'_true_baseline1.png')
+
 def plot_task1_vs_true(targets, network_predictions, network_mse, baseline_predictions, baseline_mse, n_params, b_params):
 	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
@@ -252,6 +288,8 @@ def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_pred
 	fig7.savefig("./Plots/Train/Task1/true_scaled.png")
 
 
+
+
 #def plot_learning_curves(all_predictions, targets, params, select_time,mse_all):
 def plot_learning_curves(max_pred, max_t, min_pred, min_t, params, select_time,mse_max, mse_min,time):
 	#transposed = np.array(all_predictions).T
@@ -342,35 +380,51 @@ def plot_all_learning_curves_random(predictions, targets, params, pred_time, mse
 
 
 def plot_box_plots(split1, split2, split3, params, train_time, pred_time, split):
-		for i, j, k, test in zip(split1, split2, split3, pred_time):
-			figg, ax = plt.subplots()
-			#for i in (predictions):
-			plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
-			ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
-			plt.xlabel("Test")
-			plt.ylabel("log(MSE)")
-			plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
-			plt.tight_layout()
-			figg.set_size_inches(18.5, 10.5, forward=True)
-			plt.subplots_adjust(top=0.85)
-			figg.savefig('./Plots/Train/New/' + str(train_time) + '/MSE (Boxplot)_test_'+ str(test)+'.png')
-			plt.close()
+	for i, j, k, test in zip(split1, split2, split3, pred_time):
+		figg, ax = plt.subplots()
+		#for i in (predictions):
+		plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+		ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+		plt.xlabel("Test")
+		plt.ylabel("log(MSE)")
+		plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
+		plt.tight_layout()
+		figg.set_size_inches(18.5, 10.5, forward=True)
+		plt.subplots_adjust(top=0.85)
+		figg.savefig('./Plots/Train/New/' + str(train_time) + '/MSE (Boxplot)_test_'+ str(test)+'.png')
+		plt.close()
+
+def plot_best_and_worst_boxes(s_all_split_mse,s_all_split_mse2 , all_split_mse, all_split_mse2):
+	for i, j, k, l in zip(s_all_split_mse, s_all_split_mse2, all_split_mse, all_split_mse2):
+		figg, ax = plt.subplots()
+		#for i in (predictions):
+		plt.boxplot([np.log(i), np.log(j), np.log(k), np.log(l)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+		ax.set_xticklabels(['Best(Scaled)', 'Worst(Scaled)', 'Best(Raw)', 'Worst(Raw)'])
+		plt.xlabel("Test")
+		plt.ylabel("log(MSE)")
+		plt.title("log (MSE) Quartile for the best and the worst models" , fontsize=20, fontweight="bold")
+		plt.tight_layout()
+		figg.set_size_inches(18.5, 10.5, forward=True)
+		plt.subplots_adjust(top=0.85)
+		figg.savefig('./Plots/Train/Task1/MSE best worst models (Boxplot)_test_.png')
+
+		plt.close()
 
 def plot_box_plots_random(split1, split2, split3, params, pred_time, split):
 
-		for i, j, k, test in zip(split1, split2, split3, pred_time):
-			figg, ax = plt.subplots()
-			#for i in (predictions):
-			plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
-			ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
-			plt.xlabel("Test")
-			plt.ylabel("log(MSE)")
-			plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
-			plt.tight_layout()
-			figg.set_size_inches(18.5, 10.5, forward=True)
-			plt.subplots_adjust(top=0.85)
-			figg.savefig('./Plots/Train/Random/New/MSE (Boxplot)_test_'+ str(test)+'.png')
-			plt.close()
+	for i, j, k, test in zip(split1, split2, split3, pred_time):
+		figg, ax = plt.subplots()
+		#for i in (predictions):
+		plt.boxplot([np.log(i), np.log(j), np.log(k)], showmeans=True, meanline=False)#, labels=([str(pred_time) + ' epochs'])
+		ax.set_xticklabels(['Split 1', 'Split 2', 'Split 3'])
+		plt.xlabel("Test")
+		plt.ylabel("log(MSE)")
+		plt.title("log (MSE) Quartile for test " + str(test), fontsize=20, fontweight="bold")
+		plt.tight_layout()
+		figg.set_size_inches(18.5, 10.5, forward=True)
+		plt.subplots_adjust(top=0.85)
+		figg.savefig('./Plots/Train/Random/New/MSE (Boxplot)_test_'+ str(test)+'.png')
+		plt.close()
 
 def plot(dimension):
 		# Loss (raw data)

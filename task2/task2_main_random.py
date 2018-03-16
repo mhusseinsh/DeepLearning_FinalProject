@@ -191,8 +191,10 @@ if __name__ == "__main__":
 				  thefile.write("%s\n" % item)
 
 				mse_test = []
-				for x, y in zip (predictions, targets_original[valid]):
-					mse_test.append(mean_squared_error(x, y))
+				for x, y in zip (predictions, targets[valid]):
+					mse_test.append(mean_squared_error(x[:-1], y))
+
+
 
 
 				if (split ==1):

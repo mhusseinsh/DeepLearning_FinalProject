@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	max_depth = [2, 4, 8, 16, 32]
 	n_estimators = [4, 8, 16, 32]
 	min_samples_leaf = [1, 2, 4, 8]
-	models = 5
+	models = 10
 	train_time = [5, 10, 20]
 
 	# randomness
@@ -127,6 +127,8 @@ if __name__ == "__main__":
 
 		
 		raw_predictions = []
+		y_40_splits = []
+		split_mse = []
 
 		for train, valid in kfold.split(targets_selected, y40_list):
 			rf_raw = RandomForestRegressor(max_depth=depth, n_estimators=n_estimator, min_samples_leaf = min_leaf)
@@ -143,13 +145,19 @@ if __name__ == "__main__":
 			for v_index in valid:
 				split_input.append(targets_selected[v_index])
 				split_targets.append(y40_list[v_index])
-
 						
 			raw_predictions.append(rf_raw.predict(split_input))
+			y_40_splits.append(split_targets)
 
-		preds = [item for sublist in raw_predictions for item in sublist]
+			split_mse.append(mean_squared_error(split_targets, rf_raw.predict(split_input)))
 
-		plot_baseline_vs_true(y40_list, preds, overall_mse[best], l)
+		plot_baseline_vs_true1(y_40_splits, raw_predictions, split_mse,l)
+
+		#preds = [item for sublist in raw_predictions for item in sublist]
+
+		#plot_baseline_vs_true(y40_list, preds, overall_mse[best], l)
+
+			
 
 	if not os.path.exists("./Plots/Train/Baselines2/Last"):
 		os.makedirs("./Plots/Train/Baselines2/Last")
@@ -230,6 +238,7 @@ if __name__ == "__main__":
 		rf_last.fit(training_data_rf, training_targets_rf)
 
 		predictions = rf_last.predict(valid_data_rf)
+		print(predictions.shape)
 
 		split_mse.append(mean_squared_error(targets_last_baseline[valid], predictions))
 		targets_last.append(targets_last_baseline[valid])
