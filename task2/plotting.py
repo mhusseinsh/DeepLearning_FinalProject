@@ -94,7 +94,7 @@ def plot_baseline_vs_true(targets, baseline_predictions, mse, fixed_obs):
 	fig6.savefig("./Plots/Train/Baselines2/Test " + str(fixed_obs)+ '/' + str(fixed_obs)+'_true_baseline2.png')
 	plt.close()
 
-def plot_baseline_vs_true2(targets, baseline_predictions, mse):
+def plot_baseline_vs_true2(targets, baseline_predictions, mse, params):
 	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
@@ -124,7 +124,8 @@ def plot_baseline_vs_true2(targets, baseline_predictions, mse):
 	ax[2].set_ylabel('Baseline Predicted Values')
 	ax[2].set_xlabel('True Values')
 
-	plt.suptitle('True vs Baseline', fontsize=20, fontweight="bold")
+	plt.suptitle('True vs Baseline with depth = ' +str(params[0]) + ', # estimators = ' + str(params[1])
+		+ ', min leaf = ' + str(params[2]) + ', Mean MSE = ' + str(np.mean(mse)), fontsize=20, fontweight="bold")
 	fig6.set_size_inches(18.5, 10.5, forward=True)
 	plt.tight_layout()
 	plt.subplots_adjust(top=0.85)
@@ -247,7 +248,7 @@ def plot_task1_vs_true2(targets, network_predictions, network_mse, baseline_pred
 	plt.subplots_adjust(top=0.85)
 	fig7.savefig("./Plots/Train/Task1/true_scaled.png")
 
-def plot_baseline_vs_true1(targets, baseline_predictions, mse, fixed_obs):
+def plot_baseline_vs_true1(targets, baseline_predictions, mse, fixed_obs, params):
 	"""	fig6, ax = plt.subplots(1, 3)
 	ax.scatter(targets, baseline_predictions, edgecolors=(0, 0, 0))
 	ax.plot([min(targets), max(targets)], [min(targets), max(targets)], 'k--', lw=4)
@@ -277,7 +278,8 @@ def plot_baseline_vs_true1(targets, baseline_predictions, mse, fixed_obs):
 	ax[2].set_ylabel('Baseline Predicted Values')
 	ax[2].set_xlabel('True Values')
 
-	plt.suptitle('True vs Baseline', fontsize=20, fontweight="bold")
+	plt.suptitle('True vs Baseline with depth = ' +str(params[0]) + ', # estimators = ' + str(params[1])
+		+ ', min leaf = ' + str(params[2])+ ', Mean MSE = ' + str(np.mean(mse)), fontsize=20, fontweight="bold")
 	fig6.set_size_inches(18.5, 10.5, forward=True)
 	plt.tight_layout()
 	plt.subplots_adjust(top=0.85)

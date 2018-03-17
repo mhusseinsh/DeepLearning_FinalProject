@@ -48,9 +48,9 @@ from plotting import *
 if __name__ == "__main__":
 
 
-	#decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
-	decaying_lrs = [1e-3, 1e-4, 1e-5, 1e-3, 1e-6] 
-	#alphas = [1e-7, 1e-6, 1e-5, 1e-4]
+	decaying_lrs = [[1e-4, 1e-6], [1e-4, 1e-7], [1e-2, 1e-6], [1e-3, 1e-6]]
+	#decaying_lrs = [1e-3, 1e-4, 1e-5, 1e-3, 1e-6] 
+	#alphas = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
 	alphas = [0]
 	batch_size = [8,16,32,64,128,265]
 	max_depth = [2, 4, 8, 16, 32]

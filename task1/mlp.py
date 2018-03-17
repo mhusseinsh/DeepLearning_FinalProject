@@ -36,8 +36,8 @@ def mlp(num_epochs, learning_rate, alpha):
 	model = Sequential()
 
 	model.add(Dense(64, input_dim = 5, kernel_initializer = 'random_uniform', 
-		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
-		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
+		#bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l2(alpha)))
+		bias_initializer = Constant(0.1), activation = 'relu', kernel_regularizer=l1(alpha)))
 	#model.add(GaussianNoise(0.02))
 
 	model.add(Dense(64, kernel_initializer = 'random_uniform', 
@@ -46,13 +46,13 @@ def mlp(num_epochs, learning_rate, alpha):
 	#model.add(GaussianNoise(0.02))
 	model.add(Dense(1, kernel_initializer = 'random_uniform'))
 
-	#initial_lr = learning_rate[0]
-	#final_lr = learning_rate[1]
+	initial_lr = learning_rate[0]
+	final_lr = learning_rate[1]
 
-	#decay_factor = (initial_lr - final_lr)/num_epochs
+	decay_factor = (initial_lr - final_lr)/num_epochs
 	
-	#adam = Adam(lr=learning_rate, decay = decay_factor)
-	adam = Adam(lr=learning_rate)
+	adam = Adam(lr=learning_rate, decay = decay_factor)
+	#adam = Adam(lr=learning_rate)
 	
 	model.compile(loss = 'mean_squared_error', optimizer = 'adam')
 
